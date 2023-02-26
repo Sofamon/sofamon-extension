@@ -242,5 +242,58 @@ class Character {
     const fall = this.menu.children[15];
     fall.onclick = () => this.drop();
   }
+
+  //  handles submenu/menu (hides/displays submenu)
+  handleMenu() {
+    const menuItems = this.screen.getElementsByClassName('menu-item')
+    const menu = this.screen.getElementsByClassName('menu')[0]
+    this.menu = menu
+    let activeSubMenus = []
+
+    for (let menuItem of menuItems) {
+      menuItem.onmouseenter = (e) => {
+        if (e.target.classList.contains('menu-disabled')) return
+        let newActiveSubMenus = []
+        for (let activeSubMenu of activeSubMenus) {
+          if (
+            e.target !== activeSubMenu &&
+            e.target.parentElement.parentElement !== activeSubMenu &&
+            e.target.parentElement.parentElement.parentElement.parentElement !==
+            activeSubMenu
+          ) {
+            activeSubMenu.children[1].style.display = 'none'
+          } else newActiveSubMenus.push(activeSubMenu)
+        }
+        activeSubMenus = newActiveSubMenus
+        if (e.target.classList.contains('submenu')) {
+          if (e.target.parentElement !== this.menu) {
+            if (e.target.parentElement.style.left === '-204.188px')
+              e.target.children[1].style.left = '193.828px'
+            else e.target.children[1].style.left = '-204.188px'
+          } else if (
+            parseInt(this.menu.style.left) + 420 <
+            document.documentElement.clientWidth
+          )
+            e.target.children[1].style.left = '193.828px'
+          else e.target.children[1].style.left = '-204.188px'
+          e.target.children[1].style.display = 'block'
+          if (!activeSubMenus.includes(e.target)) activeSubMenus.push(e.target)
+        }
+      }
+    }
+
+    document.addEventListener('mouseup', (e) => {
+      if (
+        !e.target.classList.contains('submenu') &&
+        !e.target.attributes.src?.value.includes('data:image/png')
+      ) {
+        this.menu.style.display = 'none'
+        if (this.task === 'watch') this.watch()
+        for (let activeSubMenu of activeSubMenus)
+          activeSubMenu.children[1].style.display = 'none'
+        activeSubMenus = []
+      }
+    })
+  }
 }
 

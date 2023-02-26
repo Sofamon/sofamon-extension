@@ -35,3 +35,34 @@ alchemy.ws.on(
   }
 );
 
+//----------------------------------------------------------------------------------------------------------------
+
+let characterInfo
+let landAPetByDefault = true
+
+const getBase64FromUrl = async (url) => {
+  const data = await fetch(url)
+  const blob = await data.blob()
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(blob)
+    reader.onloadend = () => {
+      const base64data = reader.result
+      resolve(base64data)
+    }
+  })
+}
+
+const cacheAllImages = async (id = 'noun') => {
+  return new Promise((resolve) => {
+    const imageData = []
+    for (let i = 1; i < 47; i++) {
+      getBase64FromUrl(`http://localhost:3000/images/${id}/shime${i}.png`).then(
+        (res) => {
+          imageData.push({ id: i, data: res })
+          if (imageData.length === 46) resolve(imageData)
+        }
+      )
+    }
+  })
+}

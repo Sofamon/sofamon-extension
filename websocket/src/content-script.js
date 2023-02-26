@@ -245,218 +245,256 @@ class Character {
 
   //  handles submenu/menu (hides/displays submenu)
   handleMenu() {
-    const menuItems = this.screen.getElementsByClassName('menu-item')
-    const menu = this.screen.getElementsByClassName('menu')[0]
-    this.menu = menu
-    let activeSubMenus = []
+    const menuItems = this.screen.getElementsByClassName("menu-item");
+    const menu = this.screen.getElementsByClassName("menu")[0];
+    this.menu = menu;
+    let activeSubMenus = [];
 
     for (let menuItem of menuItems) {
       menuItem.onmouseenter = (e) => {
-        if (e.target.classList.contains('menu-disabled')) return
-        let newActiveSubMenus = []
+        if (e.target.classList.contains("menu-disabled")) return;
+        let newActiveSubMenus = [];
         for (let activeSubMenu of activeSubMenus) {
           if (
             e.target !== activeSubMenu &&
             e.target.parentElement.parentElement !== activeSubMenu &&
             e.target.parentElement.parentElement.parentElement.parentElement !==
-            activeSubMenu
+              activeSubMenu
           ) {
-            activeSubMenu.children[1].style.display = 'none'
-          } else newActiveSubMenus.push(activeSubMenu)
+            activeSubMenu.children[1].style.display = "none";
+          } else newActiveSubMenus.push(activeSubMenu);
         }
-        activeSubMenus = newActiveSubMenus
-        if (e.target.classList.contains('submenu')) {
+        activeSubMenus = newActiveSubMenus;
+        if (e.target.classList.contains("submenu")) {
           if (e.target.parentElement !== this.menu) {
-            if (e.target.parentElement.style.left === '-204.188px')
-              e.target.children[1].style.left = '193.828px'
-            else e.target.children[1].style.left = '-204.188px'
+            if (e.target.parentElement.style.left === "-204.188px")
+              e.target.children[1].style.left = "193.828px";
+            else e.target.children[1].style.left = "-204.188px";
           } else if (
             parseInt(this.menu.style.left) + 420 <
             document.documentElement.clientWidth
           )
-            e.target.children[1].style.left = '193.828px'
-          else e.target.children[1].style.left = '-204.188px'
-          e.target.children[1].style.display = 'block'
-          if (!activeSubMenus.includes(e.target)) activeSubMenus.push(e.target)
+            e.target.children[1].style.left = "193.828px";
+          else e.target.children[1].style.left = "-204.188px";
+          e.target.children[1].style.display = "block";
+          if (!activeSubMenus.includes(e.target)) activeSubMenus.push(e.target);
         }
-      }
+      };
     }
 
-    document.addEventListener('mouseup', (e) => {
+    document.addEventListener("mouseup", (e) => {
       if (
-        !e.target.classList.contains('submenu') &&
-        !e.target.attributes.src?.value.includes('data:image/png')
+        !e.target.classList.contains("submenu") &&
+        !e.target.attributes.src?.value.includes("data:image/png")
       ) {
-        this.menu.style.display = 'none'
-        if (this.task === 'watch') this.watch()
+        this.menu.style.display = "none";
+        if (this.task === "watch") this.watch();
         for (let activeSubMenu of activeSubMenus)
-          activeSubMenu.children[1].style.display = 'none'
-        activeSubMenus = []
+          activeSubMenu.children[1].style.display = "none";
+        activeSubMenus = [];
       }
-    })
+    });
   }
 
   // detects scroll event and adjusts the position of the character, if it is on top of a div
   detectScroll() {
-    document.addEventListener('scroll', () => {
-      let selectedDiv = this.getSelectedDiv()
-      if (!selectedDiv || (this.y === 100 && this.position === 1)) return
-      const { top, left } = this.selectedDiv.getBoundingClientRect()
-      this.character.style.top = `${top -
+    document.addEventListener("scroll", () => {
+      let selectedDiv = this.getSelectedDiv();
+      if (!selectedDiv || (this.y === 100 && this.position === 1)) return;
+      const { top, left } = this.selectedDiv.getBoundingClientRect();
+      this.character.style.top = `${
+        top -
         parseInt(selectedDiv.style.top) +
         parseInt(this.character.style.top)
-        }px`
-      this.character.style.left = `${left -
+      }px`;
+      this.character.style.left = `${
+        left -
         parseInt(selectedDiv.style.left) +
         parseInt(this.character.style.left)
-        }px`
-      selectedDiv.style.top = `${top}px`
-      selectedDiv.style.left = `${left}px`
-      this.adjustXY()
-      this.draw()
-    })
+      }px`;
+      selectedDiv.style.top = `${top}px`;
+      selectedDiv.style.left = `${left}px`;
+      this.adjustXY();
+      this.draw();
+    });
   }
 
   // makes the character dragable and detects the movement direction and changes the position of the character
   makeElementDragable() {
-    let pos1 = 0
-    let pos2 = 0
-    let pos3 = 0
-    let pos4 = 0
+    let pos1 = 0;
+    let pos2 = 0;
+    let pos3 = 0;
+    let pos4 = 0;
 
     const dragMouseUp = ({ x, y }) => {
-      document.onmouseup = null
-      document.onmousemove = null
-      let selectedDiv = this.getSelectedDiv()
+      document.onmouseup = null;
+      document.onmousemove = null;
+      let selectedDiv = this.getSelectedDiv();
       if (
         selectedDiv &&
-        (selectedDiv.style.borderLeft.includes('solid red') ||
-          selectedDiv.style.borderRight.includes('solid red') ||
-          selectedDiv.style.borderTop.includes('solid red') ||
-          selectedDiv.style.borderBottom.includes('solid red'))
+        (selectedDiv.style.borderLeft.includes("solid red") ||
+          selectedDiv.style.borderRight.includes("solid red") ||
+          selectedDiv.style.borderTop.includes("solid red") ||
+          selectedDiv.style.borderBottom.includes("solid red"))
       )
-        selectedDiv = true
-      else selectedDiv = false
+        selectedDiv = true;
+      else selectedDiv = false;
       if (this.onAir) {
-        this.onAir = false
-        this.drop()
-      } else if (this.menu.style.display === 'none' && !selectedDiv) {
+        this.onAir = false;
+        this.drop();
+      } else if (this.menu.style.display === "none" && !selectedDiv) {
         if (x + 220 < document.documentElement.clientWidth)
-          this.menu.style.left = `${x}px`
-        else this.menu.style.left = `${x - 200}px`
+          this.menu.style.left = `${x}px`;
+        else this.menu.style.left = `${x - 200}px`;
         if (y + 465 < document.documentElement.clientHeight)
-          this.menu.style.top = `${y}px`
-        else this.menu.style.top = `${y - 387}px`
-        this.handleMenuOnClickActions()
-        if (this.isWalkable('sit', true)) {
-          this.menu.children[0].classList.remove('menu-disabled')
-          this.menu.children[3].classList.remove('menu-disabled')
-          this.menu.children[4].classList.remove('menu-disabled')
-          this.menu.children[5].classList.remove('menu-disabled')
-          this.menu.children[6].classList.remove('menu-disabled')
+          this.menu.style.top = `${y}px`;
+        else this.menu.style.top = `${y - 387}px`;
+        this.handleMenuOnClickActions();
+        if (this.isWalkable("sit", true)) {
+          this.menu.children[0].classList.remove("menu-disabled");
+          this.menu.children[3].classList.remove("menu-disabled");
+          this.menu.children[4].classList.remove("menu-disabled");
+          this.menu.children[5].classList.remove("menu-disabled");
+          this.menu.children[6].classList.remove("menu-disabled");
         } else {
-          this.menu.children[0].classList.add('menu-disabled')
-          this.menu.children[3].classList.add('menu-disabled')
-          this.menu.children[4].classList.add('menu-disabled')
-          this.menu.children[5].classList.add('menu-disabled')
-          this.menu.children[6].classList.add('menu-disabled')
+          this.menu.children[0].classList.add("menu-disabled");
+          this.menu.children[3].classList.add("menu-disabled");
+          this.menu.children[4].classList.add("menu-disabled");
+          this.menu.children[5].classList.add("menu-disabled");
+          this.menu.children[6].classList.add("menu-disabled");
         }
-        if (this.isWalkable('menu', true)) {
+        if (this.isWalkable("menu", true)) {
           if (this.y !== 100)
-            this.menu.children[8].classList.remove('menu-disabled')
-          else this.menu.children[8].classList.add('menu-disabled')
-          this.menu.children[9].classList.remove('menu-disabled')
-          this.menu.children[10].classList.remove('menu-disabled')
-          this.menu.children[11].classList.remove('menu-disabled')
+            this.menu.children[8].classList.remove("menu-disabled");
+          else this.menu.children[8].classList.add("menu-disabled");
+          this.menu.children[9].classList.remove("menu-disabled");
+          this.menu.children[10].classList.remove("menu-disabled");
+          this.menu.children[11].classList.remove("menu-disabled");
         } else {
-          this.menu.children[9].classList.add('menu-disabled')
-          this.menu.children[10].classList.add('menu-disabled')
-          this.menu.children[11].classList.add('menu-disabled')
+          this.menu.children[9].classList.add("menu-disabled");
+          this.menu.children[10].classList.add("menu-disabled");
+          this.menu.children[11].classList.add("menu-disabled");
         }
         if (this.y !== 100)
-          this.menu.children[15].classList.remove('menu-disabled')
-        else this.menu.children[15].classList.add('menu-disabled')
+          this.menu.children[15].classList.remove("menu-disabled");
+        else this.menu.children[15].classList.add("menu-disabled");
         if (this.isClimbable())
-          this.menu.children[9].classList.remove('menu-disabled')
-        else this.menu.children[9].classList.add('menu-disabled')
-        this.menu.style.display = 'block'
+          this.menu.children[9].classList.remove("menu-disabled");
+        else this.menu.children[9].classList.add("menu-disabled");
+        this.menu.style.display = "block";
       } else {
-        this.menu.style.display = 'none'
-        if (this.task === 'watch') this.watch()
+        this.menu.style.display = "none";
+        if (this.task === "watch") this.watch();
       }
-      if (selectedDiv) this.jumpOnto()
-    }
+      if (selectedDiv) this.jumpOnto();
+    };
 
     const dragMouseMove = (event) => {
-      event.preventDefault()
-      const taskId = makeId()
-      this.task = taskId
-      if (this.task !== taskId) return
-      if (pos1 === 0 && pos2 === 0) this.position = 1
-      else if (pos1 > 0 && pos3 - event.clientX > 0) this.position = 8
-      else if (pos1 > -4 && pos3 - event.clientX > -4) this.position = 7
-      else if (pos1 < -4 && pos3 - event.clientX < -4) this.position = 9
-      this.character.style.transform = 'unset'
-      this.onAir = true
-      this.draw()
-      pos1 = pos3 - event.clientX
-      pos2 = pos4 - event.clientY
-      pos3 = event.clientX
-      pos4 = event.clientY
-      this.character.style.top = `${this.character.offsetTop - pos2}px`
+      event.preventDefault();
+      const taskId = makeId();
+      this.task = taskId;
+      if (this.task !== taskId) return;
+      if (pos1 === 0 && pos2 === 0) this.position = 1;
+      else if (pos1 > 0 && pos3 - event.clientX > 0) this.position = 8;
+      else if (pos1 > -4 && pos3 - event.clientX > -4) this.position = 7;
+      else if (pos1 < -4 && pos3 - event.clientX < -4) this.position = 9;
+      this.character.style.transform = "unset";
+      this.onAir = true;
+      this.draw();
+      pos1 = pos3 - event.clientX;
+      pos2 = pos4 - event.clientY;
+      pos3 = event.clientX;
+      pos4 = event.clientY;
+      this.character.style.top = `${this.character.offsetTop - pos2}px`;
       if (this.character.offsetLeft - pos1 < -96)
-        this.character.style.left = '-96.48px'
+        this.character.style.left = "-96.48px";
       else if (
         this.character.offsetLeft - pos1 >
         document.documentElement.clientWidth - 96
       )
-        this.character.style.left = `${document.documentElement.clientWidth - 96
-          }px`
-      else this.character.style.left = `${this.character.offsetLeft - pos1}px`
-      this.adjustXY()
-    }
+        this.character.style.left = `${
+          document.documentElement.clientWidth - 96
+        }px`;
+      else this.character.style.left = `${this.character.offsetLeft - pos1}px`;
+      this.adjustXY();
+    };
 
     const dragMouseDown = (event) => {
-      event.preventDefault()
-      pos3 = event.clientX
-      pos4 = event.clientY
-      document.onmouseup = dragMouseUp
-      document.onmousemove = dragMouseMove
-    }
+      event.preventDefault();
+      pos3 = event.clientX;
+      pos4 = event.clientY;
+      document.onmouseup = dragMouseUp;
+      document.onmousemove = dragMouseMove;
+    };
 
-    this.character.onmousedown = dragMouseDown
-    this.character.oncontextmenu = (e) => e.preventDefault()
+    this.character.onmousedown = dragMouseDown;
+    this.character.oncontextmenu = (e) => e.preventDefault();
   }
 
   // draws the character on the screen (with x, y coordinate)
   draw() {
     if (!this.character) {
-      const img = document.createElement('img')
-      img.id = this.id
-      img.style.pointerEvents = 'auto'
-      img.style.position = 'absolute'
-      const screenEle = this.screen.getElementsByClassName('screen')[0]
-      screenEle.appendChild(img)
-      this.character = img
-      this.makeElementDragable()
+      const img = document.createElement("img");
+      img.id = this.id;
+      img.style.pointerEvents = "auto";
+      img.style.position = "absolute";
+      const screenEle = this.screen.getElementsByClassName("screen")[0];
+      screenEle.appendChild(img);
+      this.character = img;
+      this.makeElementDragable();
     }
     if (this.position === 30 || this.position === 31)
-      this.character.style.top = `${(this.y / 100) * document.documentElement.clientHeight - 160
-        }px`
+      this.character.style.top = `${
+        (this.y / 100) * document.documentElement.clientHeight - 160
+      }px`;
     else if (
       document.documentElement.clientHeight -
-      parseInt(this.character.style.top) ===
+        parseInt(this.character.style.top) ===
       160
     ) {
-      this.y = 100
-      this.character.style.top = `${(this.y / 100) * document.documentElement.clientHeight - 192
-        }px`
+      this.y = 100;
+      this.character.style.top = `${
+        (this.y / 100) * document.documentElement.clientHeight - 192
+      }px`;
     } else
-      this.character.style.top = `${(this.y / 100) * document.documentElement.clientHeight - 192
-        }px`
-    this.character.style.left = `${(this.x / 100) * document.documentElement.clientWidth
-      }px`
-    this.character.src = this.images[this.position - 1]
+      this.character.style.top = `${
+        (this.y / 100) * document.documentElement.clientHeight - 192
+      }px`;
+    this.character.style.left = `${
+      (this.x / 100) * document.documentElement.clientWidth
+    }px`;
+    this.character.src = this.images[this.position - 1];
   }
-}
 
+  // drop action
+  async drop() {
+    const taskId = makeId();
+    this.task = taskId;
+    if (this.task !== taskId) return;
+    let gravity = this.y > 30 ? 30 : this.y;
+    this.position = 4;
+    while (this.y < 100) {
+      if (this.menu.style.display === "block") {
+        await sleep(100);
+        continue;
+      }
+      this.draw();
+      this.y += 0.5;
+      if (gravity < 30) gravity += 0.5;
+      else if (gravity < 35) gravity += 0.25;
+      else if (gravity < 40) gravity += 0.1;
+      await sleep(45 - gravity);
+    }
+    await sleep(100);
+    this.y = 100;
+    this.position = 18;
+    this.draw();
+    await sleep(300);
+    this.position = 19;
+    this.draw();
+    await sleep(300);
+    this.position = 1;
+    this.draw();
+  }
+  
+}

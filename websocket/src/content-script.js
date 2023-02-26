@@ -428,5 +428,35 @@ class Character {
     this.character.oncontextmenu = (e) => e.preventDefault()
   }
 
+  // draws the character on the screen (with x, y coordinate)
+  draw() {
+    if (!this.character) {
+      const img = document.createElement('img')
+      img.id = this.id
+      img.style.pointerEvents = 'auto'
+      img.style.position = 'absolute'
+      const screenEle = this.screen.getElementsByClassName('screen')[0]
+      screenEle.appendChild(img)
+      this.character = img
+      this.makeElementDragable()
+    }
+    if (this.position === 30 || this.position === 31)
+      this.character.style.top = `${(this.y / 100) * document.documentElement.clientHeight - 160
+        }px`
+    else if (
+      document.documentElement.clientHeight -
+      parseInt(this.character.style.top) ===
+      160
+    ) {
+      this.y = 100
+      this.character.style.top = `${(this.y / 100) * document.documentElement.clientHeight - 192
+        }px`
+    } else
+      this.character.style.top = `${(this.y / 100) * document.documentElement.clientHeight - 192
+        }px`
+    this.character.style.left = `${(this.x / 100) * document.documentElement.clientWidth
+      }px`
+    this.character.src = this.images[this.position - 1]
+  }
 }
 

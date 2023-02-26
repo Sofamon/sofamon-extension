@@ -316,5 +316,117 @@ class Character {
       this.draw()
     })
   }
+
+  // makes the character dragable and detects the movement direction and changes the position of the character
+  makeElementDragable() {
+    let pos1 = 0
+    let pos2 = 0
+    let pos3 = 0
+    let pos4 = 0
+
+    const dragMouseUp = ({ x, y }) => {
+      document.onmouseup = null
+      document.onmousemove = null
+      let selectedDiv = this.getSelectedDiv()
+      if (
+        selectedDiv &&
+        (selectedDiv.style.borderLeft.includes('solid red') ||
+          selectedDiv.style.borderRight.includes('solid red') ||
+          selectedDiv.style.borderTop.includes('solid red') ||
+          selectedDiv.style.borderBottom.includes('solid red'))
+      )
+        selectedDiv = true
+      else selectedDiv = false
+      if (this.onAir) {
+        this.onAir = false
+        this.drop()
+      } else if (this.menu.style.display === 'none' && !selectedDiv) {
+        if (x + 220 < document.documentElement.clientWidth)
+          this.menu.style.left = `${x}px`
+        else this.menu.style.left = `${x - 200}px`
+        if (y + 465 < document.documentElement.clientHeight)
+          this.menu.style.top = `${y}px`
+        else this.menu.style.top = `${y - 387}px`
+        this.handleMenuOnClickActions()
+        if (this.isWalkable('sit', true)) {
+          this.menu.children[0].classList.remove('menu-disabled')
+          this.menu.children[3].classList.remove('menu-disabled')
+          this.menu.children[4].classList.remove('menu-disabled')
+          this.menu.children[5].classList.remove('menu-disabled')
+          this.menu.children[6].classList.remove('menu-disabled')
+        } else {
+          this.menu.children[0].classList.add('menu-disabled')
+          this.menu.children[3].classList.add('menu-disabled')
+          this.menu.children[4].classList.add('menu-disabled')
+          this.menu.children[5].classList.add('menu-disabled')
+          this.menu.children[6].classList.add('menu-disabled')
+        }
+        if (this.isWalkable('menu', true)) {
+          if (this.y !== 100)
+            this.menu.children[8].classList.remove('menu-disabled')
+          else this.menu.children[8].classList.add('menu-disabled')
+          this.menu.children[9].classList.remove('menu-disabled')
+          this.menu.children[10].classList.remove('menu-disabled')
+          this.menu.children[11].classList.remove('menu-disabled')
+        } else {
+          this.menu.children[9].classList.add('menu-disabled')
+          this.menu.children[10].classList.add('menu-disabled')
+          this.menu.children[11].classList.add('menu-disabled')
+        }
+        if (this.y !== 100)
+          this.menu.children[15].classList.remove('menu-disabled')
+        else this.menu.children[15].classList.add('menu-disabled')
+        if (this.isClimbable())
+          this.menu.children[9].classList.remove('menu-disabled')
+        else this.menu.children[9].classList.add('menu-disabled')
+        this.menu.style.display = 'block'
+      } else {
+        this.menu.style.display = 'none'
+        if (this.task === 'watch') this.watch()
+      }
+      if (selectedDiv) this.jumpOnto()
+    }
+
+    const dragMouseMove = (event) => {
+      event.preventDefault()
+      const taskId = makeId()
+      this.task = taskId
+      if (this.task !== taskId) return
+      if (pos1 === 0 && pos2 === 0) this.position = 1
+      else if (pos1 > 0 && pos3 - event.clientX > 0) this.position = 8
+      else if (pos1 > -4 && pos3 - event.clientX > -4) this.position = 7
+      else if (pos1 < -4 && pos3 - event.clientX < -4) this.position = 9
+      this.character.style.transform = 'unset'
+      this.onAir = true
+      this.draw()
+      pos1 = pos3 - event.clientX
+      pos2 = pos4 - event.clientY
+      pos3 = event.clientX
+      pos4 = event.clientY
+      this.character.style.top = `${this.character.offsetTop - pos2}px`
+      if (this.character.offsetLeft - pos1 < -96)
+        this.character.style.left = '-96.48px'
+      else if (
+        this.character.offsetLeft - pos1 >
+        document.documentElement.clientWidth - 96
+      )
+        this.character.style.left = `${document.documentElement.clientWidth - 96
+          }px`
+      else this.character.style.left = `${this.character.offsetLeft - pos1}px`
+      this.adjustXY()
+    }
+
+    const dragMouseDown = (event) => {
+      event.preventDefault()
+      pos3 = event.clientX
+      pos4 = event.clientY
+      document.onmouseup = dragMouseUp
+      document.onmousemove = dragMouseMove
+    }
+
+    this.character.onmousedown = dragMouseDown
+    this.character.oncontextmenu = (e) => e.preventDefault()
+  }
+
 }
 

@@ -62,13 +62,13 @@ const ExtensionUI = () => {
           fontFamily: "Cantarell, Arial, sans-serif",
         }}
       >
-        hikari.xyz
+        sofamon.xyz
       </center>
       <center>
         <img
           src={characterImage}
           draggable={false}
-          alt="Shimeji Browser Extension"
+          alt="Sofamon Browser Extension"
           style={{ width: 140, marginRight: 4, marginBottom: 4 }}
         />
         <br />
@@ -91,7 +91,7 @@ const ExtensionUI = () => {
         class="hover"
         onClick={() => {
           newChar();
-          
+
         }}
         style={{
           display: "flex",

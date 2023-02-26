@@ -14,7 +14,7 @@ const ConnectWallet = () => {
           fontFamily: 'Cantarell, Arial, sans-serif',
         }}
       >
-        hikari.xyz
+        sofamon.xyz
       </center>
       <center>
         <div
@@ -31,7 +31,7 @@ const ConnectWallet = () => {
             marginBottom: 54,
           }}
         >
-          <h2>Hikari</h2>
+          <h2>Sofamon</h2>
         </div>
       </center>
       <a

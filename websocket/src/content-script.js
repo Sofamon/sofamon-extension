@@ -295,5 +295,26 @@ class Character {
       }
     })
   }
+
+  // detects scroll event and adjusts the position of the character, if it is on top of a div
+  detectScroll() {
+    document.addEventListener('scroll', () => {
+      let selectedDiv = this.getSelectedDiv()
+      if (!selectedDiv || (this.y === 100 && this.position === 1)) return
+      const { top, left } = this.selectedDiv.getBoundingClientRect()
+      this.character.style.top = `${top -
+        parseInt(selectedDiv.style.top) +
+        parseInt(this.character.style.top)
+        }px`
+      this.character.style.left = `${left -
+        parseInt(selectedDiv.style.left) +
+        parseInt(this.character.style.left)
+        }px`
+      selectedDiv.style.top = `${top}px`
+      selectedDiv.style.left = `${left}px`
+      this.adjustXY()
+      this.draw()
+    })
+  }
 }
 

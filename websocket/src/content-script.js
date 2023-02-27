@@ -548,5 +548,214 @@ class Character {
     this.position = 1;
     this.draw();
   }
-  
+
+  // helps to detect if the character is on ground or on top of a div or on air
+  isWalkable(task = null, menu = false) {
+    if (this.y === 100) return true
+    if (
+      task !== 'ceiling' &&
+      task !== 'sit' &&
+      (parseInt(this.character.style.left) === -96 ||
+        parseInt(this.character.style.left) ===
+        document.documentElement.clientWidth - 96)
+    ) {
+      if (task !== 'menu') {
+        this.y = 100
+        this.draw()
+      }
+      return true
+    }
+    let selectedDiv = this.getSelectedDiv()
+    if (
+      selectedDiv &&
+      (parseInt(this.character.style.top) === parseInt(selectedDiv.style.top) ||
+        parseInt(this.character.style.top) ===
+        parseInt(selectedDiv.style.top) +
+        parseInt(selectedDiv.style.minHeight))
+    ) {
+      if (
+        task !== 'ceiling' &&
+        task !== 'sit' &&
+        task !== 'menu' &&
+        parseInt(selectedDiv.style.top) === parseInt(this.character.style.top)
+      ) {
+        this.character.style.top = `${parseInt(selectedDiv.style.top) - 192}px`
+        this.adjustXY()
+      } else if (task !== 'ceiling' && task !== 'sit' && task !== 'menu') {
+        this.character.style.top = `${parseInt(selectedDiv.style.top) +
+          parseInt(selectedDiv.style.minHeight) -
+          192
+          }px`
+        this.adjustXY()
+      }
+      return true
+    }
+    if (
+      selectedDiv &&
+      (parseInt(selectedDiv.style.top) - 192 ===
+        parseInt(this.character.style.top) ||
+        parseInt(selectedDiv.style.top) +
+        parseInt(selectedDiv.style.minHeight) -
+        192 ===
+        parseInt(this.character.style.top))
+    ) {
+      if (
+        task === 'ceiling' &&
+        parseInt(selectedDiv.style.top) - 192 ===
+        parseInt(this.character.style.top)
+      )
+        this.character.style.top = selectedDiv.style.top
+      else if (
+        task === 'ceiling' &&
+        parseInt(selectedDiv.style.top) +
+        parseInt(selectedDiv.style.minHeight) -
+        192 ===
+        parseInt(this.character.style.top)
+      )
+        this.character.style.top = `${parseInt(selectedDiv.style.top) +
+          parseInt(selectedDiv.style.minHeight)
+          }px`
+      return true
+    }
+    if (
+      selectedDiv &&
+      (parseInt(selectedDiv.style.top) - 160 ===
+        parseInt(this.character.style.top) ||
+        parseInt(selectedDiv.style.top) +
+        parseInt(selectedDiv.style.minHeight) -
+        160 ===
+        parseInt(this.character.style.top))
+    ) {
+      if (
+        task !== 'jiggle' &&
+        !menu &&
+        parseInt(selectedDiv.style.top) - 160 ===
+        parseInt(this.character.style.top)
+      )
+        this.character.style.top = `${parseInt(selectedDiv.style.top) - 192}px`
+      else if (task !== 'jiggle' && !menu)
+        this.character.style.top = `${parseInt(selectedDiv.style.top) +
+          parseInt(selectedDiv.style.minHeight) -
+          192
+          }px`
+      return true
+    }
+    if (
+      selectedDiv &&
+      parseInt(selectedDiv.style.top) - 96 ===
+      parseInt(this.character.style.top)
+    ) {
+      if (task === 'sit') return false
+      else if (task !== 'menu')
+        this.character.style.top = `${parseInt(selectedDiv.style.top) - 192}px`
+      return true
+    }
+    if (
+      selectedDiv &&
+      parseInt(selectedDiv.style.top) +
+      parseInt(selectedDiv.style.minHeight) -
+      165 ===
+      parseInt(this.character.style.top)
+    ) {
+      if (task === 'sit') return false
+      else if (task !== 'menu')
+        this.character.style.top = `${parseInt(selectedDiv.style.top) +
+          parseInt(selectedDiv.style.minHeight) -
+          192
+          }px`
+      return true
+    }
+    return false
+  }
+
+  // walk action
+  async walk(direction, speed) {
+    const taskId = makeId()
+    this.task = taskId
+    if (this.task !== taskId) return
+    if (direction === 'right')
+      this.character.style.transform = 'rotateY(180deg)'
+    else this.character.style.transform = 'unset'
+    const positions = [1, 2, 1, 3]
+    let step = 0
+    let walkingSpeed = 8
+    let sleepTime = 21
+    let leftLimit = -96
+    let rightLimit = document.documentElement.clientWidth - 94.5
+    if (speed === 'run') {
+      walkingSpeed = 10
+      sleepTime = 8
+    } else if (speed === 'dash') {
+      walkingSpeed = 12
+      sleepTime = 6
+    } else if (speed === 'faster') {
+      if (this.y !== 100) await this.drop()
+      walkingSpeed = 4
+      sleepTime = 0
+      leftLimit = -200
+    }
+    if (!this.isWalkable()) return
+    if (this.y !== 100) {
+      let selectedDiv = this.getSelectedDiv()
+      leftLimit = parseInt(selectedDiv.style.left) - 81
+      rightLimit = leftLimit + parseInt(selectedDiv.style.minWidth) - 30
+      if (leftLimit > parseInt(this.character.style.left))
+        this.character.style.left = `${leftLimit}px`
+      else if (rightLimit < parseInt(this.character.style.left))
+        this.character.style.left = `${rightLimit}px`
+    }
+    while (
+      this.isWalkable() &&
+      (speed === 'faster' || this.task === taskId) &&
+      parseInt(this.character.style.left) >= leftLimit &&
+      parseInt(this.character.style.left) <= rightLimit
+    ) {
+      if (this.menu.style.display === 'block') {
+        await sleep(100)
+        continue
+      }
+      this.position = positions[step % 4]
+      step++
+      for (
+        let i = 0;
+        i < walkingSpeed &&
+        (speed === 'faster' || this.task === taskId) &&
+        this.isWalkable() &&
+        parseInt(this.character.style.left) >= leftLimit &&
+        parseInt(this.character.style.left) <= rightLimit;
+        i++
+      ) {
+        if (this.menu.style.display === 'block') {
+          await sleep(100)
+          continue
+        }
+        if (speed === 'faster')
+          this.character.style.left =
+            direction === 'left'
+              ? `${parseInt(this.character.style.left) - 3}px`
+              : `${parseInt(this.character.style.left) + 3}px`
+        else
+          this.character.style.left =
+            direction === 'left'
+              ? `${parseInt(this.character.style.left) - 1}px`
+              : `${parseInt(this.character.style.left) + 1}px`
+        this.adjustXY()
+        this.draw()
+        await sleep(sleepTime)
+      }
+    }
+    if (speed !== 'faster' && this.task !== taskId) return
+    if (!this.isWalkable()) return
+    this.position = 1
+    if (this.y === 100)
+      this.character.style.left =
+        direction === 'left'
+          ? '-96.48px'
+          : `${document.documentElement.clientWidth - 95.67}px`
+    else
+      this.character.style.left =
+        direction === 'left' ? `${leftLimit}px` : `${rightLimit}px`
+    this.adjustXY()
+    this.draw()
+  }
 }

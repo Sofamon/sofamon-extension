@@ -960,4 +960,97 @@ class Character {
       return true;
     return false;
   }
+
+  // climb action
+  async climb(direction, speed) {
+    const taskId = makeId();
+    this.task = taskId;
+    if (this.task !== taskId) return;
+    const positions = [13, 12, 14, 12];
+    let step = 0;
+    let climbingSpeed = 8;
+    let sleepTime = [25, 1000];
+    let upLimit = -96;
+    let downLimit = document.documentElement.clientHeight - 95.67;
+    let selectedDiv = this.getSelectedDiv();
+    if (
+      selectedDiv &&
+      this.y !== 100 &&
+      (parseInt(this.character.style.left) !== -96 ||
+        parseInt(this.character.style.left) !==
+          document.documentElement.clientWidth - 96)
+    ) {
+      upLimit = parseInt(selectedDiv.style.top) - 96;
+      downLimit = upLimit + parseInt(selectedDiv.style.minHeight) - 69;
+      if (parseInt(this.character.style.top) < upLimit)
+        this.character.style.top = `${upLimit}px`;
+      else if (parseInt(this.character.style.top) > downLimit)
+        this.character.style.top = `${downLimit}px`;
+    }
+    if (speed === "fast") {
+      climbingSpeed = 18;
+      sleepTime = [4, 200];
+    }
+    if (this.y === 100) {
+      this.character.style.top = `${parseInt(this.character.style.top) + 90}px`;
+      this.position = 13;
+      this.adjustXY();
+      this.draw();
+    }
+    if (!this.isClimbable("climb")) return;
+    if (
+      parseInt(this.character.style.left) ===
+      document.documentElement.clientWidth - 96
+    )
+      this.character.style.transform = "rotateY(180deg)";
+    while (
+      this.isClimbable() &&
+      this.task === taskId &&
+      parseInt(this.character.style.top) >= upLimit &&
+      parseInt(this.character.style.top) <= downLimit
+    ) {
+      if (this.menu.style.display === "block") {
+        await sleep(100);
+        continue;
+      }
+      this.position = positions[step % 4];
+      step++;
+      for (
+        let i = 0;
+        i < climbingSpeed &&
+        this.task === taskId &&
+        this.isClimbable() &&
+        parseInt(this.character.style.top) >= upLimit &&
+        parseInt(this.character.style.top) <= downLimit;
+        i++
+      ) {
+        if (this.menu.style.display === "block") {
+          await sleep(100);
+          continue;
+        }
+        this.character.style.top =
+          direction === "up"
+            ? `${parseInt(this.character.style.top) - 1}px`
+            : `${parseInt(this.character.style.top) + 1}px`;
+        this.adjustXY();
+        await sleep(sleepTime[0]);
+      }
+      this.adjustXY();
+      this.draw();
+      await sleep(this.position === 12 ? 50 : sleepTime[1]);
+    }
+    if (this.task !== taskId) return;
+    if (!this.isClimbable()) return;
+    this.position = 13;
+    if (this.y === 100)
+      this.character.style.top =
+        direction === "up"
+          ? "-96.48px"
+          : `${document.documentElement.clientHeight - 95.67}px`;
+    else
+      this.character.style.top =
+        direction === "up" ? `${upLimit}px` : `${downLimit}px`;
+    this.adjustXY();
+    this.draw();
+  }
 }

@@ -496,5 +496,57 @@ class Character {
     this.position = 1;
     this.draw();
   }
+
+  // clone action
+  async clone() {
+    const taskId = makeId();
+    this.task = taskId;
+    if (this.task !== taskId) return;
+    if (getNumberOfCharacters() >= 3) {
+      alert("Clone failed! Maximum of 3 shimejis per character.");
+    } else if (this.y === 100) {
+      await this.clone_1();
+      const id = makeId();
+      const newCharacter = new Character(id);
+      characters.push(newCharacter);
+      newCharacter.x = this.x + 10;
+      newCharacter.y = 100;
+      newCharacter.sit();
+    } else {
+      await this.clone_2();
+      const id = makeId();
+      const newCharacter = new Character(id);
+      characters.push(newCharacter);
+      newCharacter.x = this.x - 10;
+      newCharacter.y = this.y;
+      newCharacter.drop();
+    }
+  }
+
+  // clone type 1: performed when the character is on ground
+  async clone_1() {
+    const positions = [42, 43, 44, 45, 46];
+    for (let position of positions) {
+      this.position = position;
+      this.draw();
+      await sleep(250);
+    }
+    await sleep(250);
+    this.position = 1;
+    this.draw();
+  }
+
+  // clone type 2: performed when the character is on air
+  async clone_2() {
+    const positions = [38, 39, 40, 41];
+    for (let position of positions) {
+      this.position = position;
+      this.draw();
+      await sleep(500);
+    }
+    await sleep(250);
+    this.position = 1;
+    this.draw();
+  }
   
 }

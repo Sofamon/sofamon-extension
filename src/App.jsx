@@ -12,8 +12,7 @@ const App = () => {
     });
   }, []);
 
-  return <>{
-    <ConnectWallet />}</>;
+  return <>{walletConnected ? <ExtensionUI /> : <ConnectWallet />}</>;
 };
 
 export default App;

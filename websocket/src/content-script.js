@@ -758,4 +758,79 @@ class Character {
     this.adjustXY()
     this.draw()
   }
+
+  // ceiling action
+  async ceiling(direction, speed) {
+    const taskId = makeId()
+    this.task = taskId
+    if (this.task !== taskId) return
+    if (direction === 'right')
+      this.character.style.transform = 'rotateY(180deg)'
+    else this.character.style.transform = 'unset'
+    const positions = [23, 24, 23, 25]
+    let step = 0
+    let walkingSpeed = 8
+    let sleepTime = 21
+    if (speed === 'fast') {
+      walkingSpeed = 10
+      sleepTime = 8
+    }
+    if (!this.isWalkable('ceiling')) return
+    let selectedDiv = this.getSelectedDiv()
+    let leftLimit = parseInt(selectedDiv.style.left) - 81
+    let rightLimit = leftLimit + parseInt(selectedDiv.style.minWidth) - 30
+    if (leftLimit > parseInt(this.character.style.left))
+      this.character.style.left = `${leftLimit}px`
+    else if (rightLimit < parseInt(this.character.style.left))
+      this.character.style.left = `${rightLimit}px`
+    while (
+      this.isWalkable('ceiling') &&
+      this.task === taskId &&
+      parseInt(this.character.style.left) >= leftLimit &&
+      parseInt(this.character.style.left) <= rightLimit
+    ) {
+      if (this.menu.style.display === 'block') {
+        await sleep(100)
+        continue
+      }
+      this.position = positions[step % 4]
+      step++
+      for (
+        let i = 0;
+        i < walkingSpeed &&
+        this.task === taskId &&
+        this.isWalkable('ceiling') &&
+        parseInt(this.character.style.left) >= leftLimit &&
+        parseInt(this.character.style.left) <= rightLimit;
+        i++
+      ) {
+        if (this.menu.style.display === 'block') {
+          await sleep(100)
+          continue
+        }
+        this.character.style.left =
+          direction === 'left'
+            ? `${parseInt(this.character.style.left) - 1}px`
+            : `${parseInt(this.character.style.left) + 1}px`
+        this.adjustXY()
+        this.draw()
+        await sleep(sleepTime)
+      }
+    }
+    if (this.task !== taskId) return
+    if (!this.isWalkable('ceiling')) return
+    this.position = 23
+    if (this.y === 100)
+      this.character.style.left =
+        direction === 'left'
+          ? '-96.48px'
+          : `${document.documentElement.clientWidth - 95.67}px`
+    else
+      this.character.style.left =
+        direction === 'left' ? `${leftLimit}px` : `${rightLimit}px`
+    this.adjustXY()
+    this.draw()
+  }
+
+  
 }

@@ -913,4 +913,51 @@ class Character {
     this.adjustXY();
     this.draw();
   }
+
+  // helps to detect if the character is on the edge (of a div or screen) or not
+  isClimbable(task = null) {
+    if (
+      parseInt(this.character.style.left) === -96 ||
+      parseInt(this.character.style.left) ===
+        document.documentElement.clientWidth - 96
+    )
+      return true;
+    let selectedDiv = this.getSelectedDiv();
+    if (
+      selectedDiv &&
+      (parseInt(selectedDiv.style.left) - 81 ===
+        parseInt(this.character.style.left) ||
+        parseInt(selectedDiv.style.left) +
+          parseInt(selectedDiv.style.minWidth) -
+          111 ===
+          parseInt(this.character.style.left))
+    ) {
+      if (task === "climb") {
+        if (this.character.style.transform === "rotateY(180deg)") {
+          this.character.style.transform = "unset";
+          this.character.style.left = `${
+            parseInt(selectedDiv.style.left) +
+            parseInt(selectedDiv.style.minWidth) -
+            65
+          }px`;
+        } else {
+          this.character.style.transform = "rotateY(180deg)";
+          this.character.style.left = `${
+            parseInt(selectedDiv.style.left) - 125
+          }px`;
+        }
+      }
+      return true;
+    }
+    if (
+      selectedDiv &&
+      (parseInt(selectedDiv.style.left) ===
+        parseInt(this.character.style.left) + 125 ||
+        parseInt(selectedDiv.style.left) +
+          parseInt(selectedDiv.style.minWidth) ===
+          parseInt(this.character.style.left) + 65)
+    )
+      return true;
+    return false;
+  }
 }

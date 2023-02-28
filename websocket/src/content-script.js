@@ -1056,288 +1056,532 @@ class Character {
 
   // sit action
   sit() {
-    const taskId = makeId()
-    this.task = taskId
-    if (this.task !== taskId) return
-    this.character.style.transform = 'unset'
-    if (!this.isWalkable() || !this.isWalkable('sit')) return
-    this.position = 11
-    this.draw()
+    const taskId = makeId();
+    this.task = taskId;
+    if (this.task !== taskId) return;
+    this.character.style.transform = "unset";
+    if (!this.isWalkable() || !this.isWalkable("sit")) return;
+    this.position = 11;
+    this.draw();
   }
 
   // watch action
   watch() {
-    const taskId = 'watch'
-    this.task = taskId
-    if (this.task !== taskId) return
-    this.character.style.transform = 'unset'
-    if (!this.isWalkable() || !this.isWalkable('sit')) return
-    this.position = 26
-    this.draw()
+    const taskId = "watch";
+    this.task = taskId;
+    if (this.task !== taskId) return;
+    this.character.style.transform = "unset";
+    if (!this.isWalkable() || !this.isWalkable("sit")) return;
+    this.position = 26;
+    this.draw();
     const trackCursor = ({ x }) => {
-      if (this.menu.style.display === 'block') return
-      if (this.task !== taskId) document.onmousemove = null
+      if (this.menu.style.display === "block") return;
+      if (this.task !== taskId) document.onmousemove = null;
       else if ((this.x * document.documentElement.clientWidth) / 100 + 96 < x)
-        this.character.style.transform = 'rotateY(180deg)'
-      else this.character.style.transform = 'unset'
-    }
-    document.onmousemove = trackCursor
+        this.character.style.transform = "rotateY(180deg)";
+      else this.character.style.transform = "unset";
+    };
+    document.onmousemove = trackCursor;
   }
 
   // rare action
   async rare(rounds = Number.MAX_VALUE) {
-    const taskId = makeId()
-    this.task = taskId
-    if (this.task !== taskId) return
-    this.character.style.transform = 'unset'
-    if (!this.isWalkable() || !this.isWalkable('sit')) return
-    const positions = [26, 15, 27, 16, 28, 17, 29]
-    let step = 0
-    while (this.isWalkable('sit') && this.task === taskId && step < rounds) {
-      if (this.menu.style.display === 'block') {
-        await sleep(100)
-        continue
+    const taskId = makeId();
+    this.task = taskId;
+    if (this.task !== taskId) return;
+    this.character.style.transform = "unset";
+    if (!this.isWalkable() || !this.isWalkable("sit")) return;
+    const positions = [26, 15, 27, 16, 28, 17, 29];
+    let step = 0;
+    while (this.isWalkable("sit") && this.task === taskId && step < rounds) {
+      if (this.menu.style.display === "block") {
+        await sleep(100);
+        continue;
       }
-      this.position = positions[step % 7]
-      this.draw()
-      step++
-      await sleep(300)
-      if (rounds === step + 1) this.sit()
+      this.position = positions[step % 7];
+      this.draw();
+      step++;
+      await sleep(300);
+      if (rounds === step + 1) this.sit();
     }
   }
 
   // jiggle action
   async jiggle() {
-    const taskId = makeId()
-    this.task = taskId
-    if (this.task !== taskId) return
-    this.character.style.transform = 'unset'
-    const positions = [30, 31]
-    let step = 0
-    while (this.isWalkable('jiggle') && this.task === taskId) {
-      if (this.menu.style.display === 'block') {
-        await sleep(100)
-        continue
+    const taskId = makeId();
+    this.task = taskId;
+    if (this.task !== taskId) return;
+    this.character.style.transform = "unset";
+    const positions = [30, 31];
+    let step = 0;
+    while (this.isWalkable("jiggle") && this.task === taskId) {
+      if (this.menu.style.display === "block") {
+        await sleep(100);
+        continue;
       }
-      this.position = positions[step % 2]
-      this.draw()
-      step++
-      await sleep(800)
+      this.position = positions[step % 2];
+      this.draw();
+      step++;
+      await sleep(800);
     }
   }
 
   // dismiss action
   async dismiss() {
-    const taskId = makeId()
-    this.task = taskId
-    if (this.task !== taskId) return
-    await this.walk('left', 'faster')
-    if (this.x < 0) this.character.parentElement.parentElement.remove()
+    const taskId = makeId();
+    this.task = taskId;
+    if (this.task !== taskId) return;
+    await this.walk("left", "faster");
+    if (this.x < 0) this.character.parentElement.parentElement.remove();
   }
 
   // jump on to action
   async jumpOnto(steal = false) {
-    const taskId = makeId()
-    this.task = taskId
-    if (this.task !== taskId) return
+    const taskId = makeId();
+    this.task = taskId;
+    if (this.task !== taskId) return;
     return new Promise((resolve) => {
-      let selectedDiv = this.getSelectedDiv()
-      if (selectedDiv) selectedDiv.remove()
+      let selectedDiv = this.getSelectedDiv();
+      if (selectedDiv) selectedDiv.remove();
       const onClick = async (e) => {
-        e.stopPropagation()
-        e.preventDefault()
+        e.stopPropagation();
+        e.preventDefault();
         if (
-          e.target.attributes.src?.value.includes('data:image/png') ||
+          e.target.attributes.src?.value.includes("data:image/png") ||
           this.menu.contains(e.target)
         )
-          return
-        document.onmousemove = null
-        document.onclick = null
-        this.position = 22
-        this.draw()
-        const selectedDiv = this.getSelectedDiv()
+          return;
+        document.onmousemove = null;
+        document.onclick = null;
+        this.position = 22;
+        this.draw();
+        const selectedDiv = this.getSelectedDiv();
         if (steal) {
-          selectedDiv.style.border = 'none'
+          selectedDiv.style.border = "none";
           const upMovement =
             (parseInt(selectedDiv.style.top) +
               parseInt(selectedDiv.style.minHeight) -
               parseInt(this.character.style.top) -
               32) /
-            80
-          let leftMovement
+            80;
+          let leftMovement;
           if (
             Math.abs(
               parseInt(selectedDiv.style.left) -
-              parseInt(this.character.style.left)
+                parseInt(this.character.style.left)
             ) <
             Math.abs(
               parseInt(selectedDiv.style.left) +
-              parseInt(selectedDiv.style.minWidth) -
-              parseInt(this.character.style.left)
+                parseInt(selectedDiv.style.minWidth) -
+                parseInt(this.character.style.left)
             )
           )
             leftMovement =
               (parseInt(selectedDiv.style.left) -
                 parseInt(this.character.style.left) -
                 96) /
-              80
+              80;
           else
             leftMovement =
               (parseInt(selectedDiv.style.left) +
                 parseInt(selectedDiv.style.minWidth) -
                 parseInt(this.character.style.left) -
                 0) /
-              80
+              80;
           if (leftMovement > 0)
-            this.character.style.transform = 'rotateY(180deg)'
-          else this.character.style.transform = 'unset'
+            this.character.style.transform = "rotateY(180deg)";
+          else this.character.style.transform = "unset";
           for (let i = 0; i < 80; i++) {
-            this.character.style.top = `${parseInt(this.character.style.top) + upMovement
-              }px`
-            this.character.style.left = `${parseInt(this.character.style.left) + leftMovement
-              }px`
-            await sleep(10)
+            this.character.style.top = `${
+              parseInt(this.character.style.top) + upMovement
+            }px`;
+            this.character.style.left = `${
+              parseInt(this.character.style.left) + leftMovement
+            }px`;
+            await sleep(10);
           }
-          this.character.style.transform = 'unset'
-        } else if (selectedDiv.style.borderTop.includes('solid red')) {
-          selectedDiv.style.border = 'none'
+          this.character.style.transform = "unset";
+        } else if (selectedDiv.style.borderTop.includes("solid red")) {
+          selectedDiv.style.border = "none";
           const upMovement =
             (parseInt(selectedDiv.style.top) -
               parseInt(this.character.style.top) -
               126) /
-            80
+            80;
           const leftMovement =
-            (e.x - parseInt(this.character.style.left) - 30) / 80
+            (e.x - parseInt(this.character.style.left) - 30) / 80;
           if (leftMovement > 0)
-            this.character.style.transform = 'rotateY(180deg)'
-          else this.character.style.transform = 'unset'
+            this.character.style.transform = "rotateY(180deg)";
+          else this.character.style.transform = "unset";
           for (let i = 0; i < 80; i++) {
-            this.character.style.top = `${parseInt(this.character.style.top) + upMovement
-              }px`
-            this.character.style.left = `${parseInt(this.character.style.left) + leftMovement
-              }px`
-            await sleep(10)
+            this.character.style.top = `${
+              parseInt(this.character.style.top) + upMovement
+            }px`;
+            this.character.style.left = `${
+              parseInt(this.character.style.left) + leftMovement
+            }px`;
+            await sleep(10);
           }
-          this.character.style.top = `${parseInt(selectedDiv.style.top) - 192
-            }px`
-          this.character.style.left = `${e.x - 96}px`
-          this.position = 1
-        } else if (selectedDiv.style.borderBottom.includes('solid red')) {
-          selectedDiv.style.border = 'none'
+          this.character.style.top = `${
+            parseInt(selectedDiv.style.top) - 192
+          }px`;
+          this.character.style.left = `${e.x - 96}px`;
+          this.position = 1;
+        } else if (selectedDiv.style.borderBottom.includes("solid red")) {
+          selectedDiv.style.border = "none";
           const upMovement =
             (parseInt(selectedDiv.style.top) +
               parseInt(selectedDiv.style.minHeight) -
               parseInt(this.character.style.top) -
               126) /
-            80
+            80;
           const leftMovement =
-            (e.x - parseInt(this.character.style.left) - 30) / 80
+            (e.x - parseInt(this.character.style.left) - 30) / 80;
           if (leftMovement > 0)
-            this.character.style.transform = 'rotateY(180deg)'
-          else this.character.style.transform = 'unset'
+            this.character.style.transform = "rotateY(180deg)";
+          else this.character.style.transform = "unset";
           for (let i = 0; i < 80; i++) {
-            this.character.style.top = `${parseInt(this.character.style.top) + upMovement
-              }px`
-            this.character.style.left = `${parseInt(this.character.style.left) + leftMovement
-              }px`
-            await sleep(10)
+            this.character.style.top = `${
+              parseInt(this.character.style.top) + upMovement
+            }px`;
+            this.character.style.left = `${
+              parseInt(this.character.style.left) + leftMovement
+            }px`;
+            await sleep(10);
           }
-          this.character.style.top = `${parseInt(selectedDiv.style.top) +
+          this.character.style.top = `${
+            parseInt(selectedDiv.style.top) +
             parseInt(selectedDiv.style.minHeight) -
             192
-            }px`
-          this.character.style.left = `${e.x - 96}px`
-          this.position = 1
-        } else if (selectedDiv.style.borderLeft.includes('solid red')) {
-          selectedDiv.style.border = 'none'
-          const upMovement = (e.y - parseInt(this.character.style.top)) / 80
+          }px`;
+          this.character.style.left = `${e.x - 96}px`;
+          this.position = 1;
+        } else if (selectedDiv.style.borderLeft.includes("solid red")) {
+          selectedDiv.style.border = "none";
+          const upMovement = (e.y - parseInt(this.character.style.top)) / 80;
           const leftMovement =
             (parseInt(selectedDiv.style.left) -
               parseInt(this.character.style.left) -
               96) /
-            80
+            80;
           if (leftMovement > 0)
-            this.character.style.transform = 'rotateY(180deg)'
-          else this.character.style.transform = 'unset'
+            this.character.style.transform = "rotateY(180deg)";
+          else this.character.style.transform = "unset";
           for (let i = 0; i < 80; i++) {
-            this.character.style.top = `${parseInt(this.character.style.top) + upMovement
-              }px`
-            this.character.style.left = `${parseInt(this.character.style.left) + leftMovement
-              }px`
-            await sleep(10)
+            this.character.style.top = `${
+              parseInt(this.character.style.top) + upMovement
+            }px`;
+            this.character.style.left = `${
+              parseInt(this.character.style.left) + leftMovement
+            }px`;
+            await sleep(10);
           }
-          this.character.style.transform = 'rotateY(180deg)'
-          this.character.style.top = `${e.y - 96}px`
-          this.character.style.left = `${parseInt(selectedDiv.style.left) - 125
-            }px`
-          this.position = 13
-        } else if (selectedDiv.style.borderRight.includes('solid red')) {
-          selectedDiv.style.border = 'none'
-          const upMovement = (e.y - parseInt(this.character.style.top)) / 80
+          this.character.style.transform = "rotateY(180deg)";
+          this.character.style.top = `${e.y - 96}px`;
+          this.character.style.left = `${
+            parseInt(selectedDiv.style.left) - 125
+          }px`;
+          this.position = 13;
+        } else if (selectedDiv.style.borderRight.includes("solid red")) {
+          selectedDiv.style.border = "none";
+          const upMovement = (e.y - parseInt(this.character.style.top)) / 80;
           const leftMovement =
             (parseInt(selectedDiv.style.left) +
               parseInt(selectedDiv.style.minWidth) -
               parseInt(this.character.style.left) -
               30) /
-            80
+            80;
           if (leftMovement > 0)
-            this.character.style.transform = 'rotateY(180deg)'
-          else this.character.style.transform = 'unset'
+            this.character.style.transform = "rotateY(180deg)";
+          else this.character.style.transform = "unset";
           for (let i = 0; i < 80; i++) {
-            this.character.style.top = `${parseInt(this.character.style.top) + upMovement
-              }px`
-            this.character.style.left = `${parseInt(this.character.style.left) + leftMovement
-              }px`
-            await sleep(10)
+            this.character.style.top = `${
+              parseInt(this.character.style.top) + upMovement
+            }px`;
+            this.character.style.left = `${
+              parseInt(this.character.style.left) + leftMovement
+            }px`;
+            await sleep(10);
           }
-          this.character.style.transform = 'unset'
-          this.character.style.top = `${e.y - 96}px`
-          this.character.style.left = `${parseInt(selectedDiv.style.left) +
+          this.character.style.transform = "unset";
+          this.character.style.top = `${e.y - 96}px`;
+          this.character.style.left = `${
+            parseInt(selectedDiv.style.left) +
             parseInt(selectedDiv.style.minWidth) -
             65
-            }px`
-          this.position = 13
+          }px`;
+          this.position = 13;
         }
-        this.adjustXY()
-        this.draw()
-        resolve()
-      }
+        this.adjustXY();
+        this.draw();
+        resolve();
+      };
       document.onmousemove = (e) => {
         if (
-          e.target.style.position === 'relative' &&
-          e.target.style.visibility === 'hidden'
+          e.target.style.position === "relative" &&
+          e.target.style.visibility === "hidden"
         )
-          return
-        if (this.character.contains(e.target)) return
-        this.selectedDiv = e.target
-        this.selectedDiv.onclick = onClick
-        const { top, left, height, width } = e.target.getBoundingClientRect()
-        const div = document.createElement('div')
-        div.style.position = 'absolute'
-        div.style.top = `${top}px`
-        div.style.left = `${left}px`
-        div.style.minHeight = `${height}px`
-        div.style.minWidth = `${width}px`
-        if (steal) div.style.border = '3px solid red'
-        else if (left + 10 > e.x) div.style.borderLeft = '3px solid red'
+          return;
+        if (this.character.contains(e.target)) return;
+        this.selectedDiv = e.target;
+        this.selectedDiv.onclick = onClick;
+        const { top, left, height, width } = e.target.getBoundingClientRect();
+        const div = document.createElement("div");
+        div.style.position = "absolute";
+        div.style.top = `${top}px`;
+        div.style.left = `${left}px`;
+        div.style.minHeight = `${height}px`;
+        div.style.minWidth = `${width}px`;
+        if (steal) div.style.border = "3px solid red";
+        else if (left + 10 > e.x) div.style.borderLeft = "3px solid red";
         else if (left + width - 10 < e.x)
-          div.style.borderRight = '3px solid red'
+          div.style.borderRight = "3px solid red";
         else if (top + height / 2 < e.y)
-          div.style.borderBottom = '3px solid red'
-        else div.style.borderTop = '3px solid red'
-        div.className = 'div-outline'
-        selectedDiv = this.getSelectedDiv()
-        if (selectedDiv) selectedDiv.remove()
-        const screenEle = this.screen.getElementsByClassName('screen')[0]
-        screenEle.appendChild(div)
-      }
+          div.style.borderBottom = "3px solid red";
+        else div.style.borderTop = "3px solid red";
+        div.className = "div-outline";
+        selectedDiv = this.getSelectedDiv();
+        if (selectedDiv) selectedDiv.remove();
+        const screenEle = this.screen.getElementsByClassName("screen")[0];
+        screenEle.appendChild(div);
+      };
       document.onmouseout = (e) => {
         if (
-          !e.target.attributes.src?.value.includes('data:image/png') &&
+          !e.target.attributes.src?.value.includes("data:image/png") &&
           !this.menu.contains(e.target)
         )
-          e.target.onclick = null
+          e.target.onclick = null;
+      };
+    });
+  }
+
+  // steal object action
+  async stealObject() {
+    await this.jumpOnto(true);
+    const taskId = makeId();
+    this.task = taskId;
+    if (this.task !== taskId) return;
+    this.position = 34;
+    const selectedDiv = this.getSelectedDiv();
+    if (
+      Math.abs(
+        parseInt(selectedDiv.style.left) - parseInt(this.character.style.left)
+      ) <
+      Math.abs(
+        parseInt(selectedDiv.style.left) +
+          parseInt(selectedDiv.style.minWidth) -
+          parseInt(this.character.style.left)
+      )
+    ) {
+      this.character.style.transform = "rotateY(180deg)";
+      this.character.style.left = `${parseInt(selectedDiv.style.left) - 104}px`;
+    } else {
+      this.character.style.transform = "unset";
+      this.character.style.left = `${
+        parseInt(selectedDiv.style.left) +
+        parseInt(selectedDiv.style.minWidth) -
+        87
+      }px`;
+    }
+    this.character.style.top = `${
+      parseInt(selectedDiv.style.top) +
+      parseInt(selectedDiv.style.minHeight) -
+      93
+    }px`;
+    this.adjustXY();
+    this.draw();
+    let clonedDiv = this.selectedDiv.cloneNode(true);
+    this.screen.appendChild(clonedDiv);
+    copyComputedStyle(this.selectedDiv, clonedDiv);
+    const { top, left, height } = this.selectedDiv.getBoundingClientRect();
+    this.selectedDiv.style.position = "relative";
+    this.selectedDiv.style.visibility = "hidden";
+    clonedDiv.style.position = "fixed";
+    clonedDiv.style.top = `${top}px`;
+    clonedDiv.style.left = `${left}px`;
+    let gravity = this.y > 30 ? 30 : this.y;
+    while (this.y < 100) {
+      if (this.menu.style.display === "block") {
+        await sleep(100);
+        continue;
       }
-    })
+      clonedDiv.style.top = `${
+        (this.y / 100) * document.documentElement.clientHeight - height - 85
+      }px`;
+      this.draw();
+      this.y += 0.5;
+      if (gravity < 30) gravity += 0.5;
+      else if (gravity < 35) gravity += 0.25;
+      else if (gravity < 40) gravity += 0.1;
+      await sleep(45 - gravity);
+    }
+    await sleep(100);
+    this.y = 100;
+    clonedDiv.style.top = `${
+      (this.y / 100) * document.documentElement.clientHeight - height - 85
+    }px`;
+    this.draw();
+    const positions = [35, 36];
+    let step = 0;
+    let leftLimit = -96;
+    let rightLimit = document.documentElement.clientWidth - 94.5;
+    if (parseInt(this.character.style.left) > rightLimit) {
+      this.character.style.left = `${rightLimit}px`;
+      this.adjustXY();
+      this.draw();
+    }
+    if (!this.isWalkable()) return;
+    while (
+      this.isWalkable() &&
+      this.task === taskId &&
+      parseInt(this.character.style.left) >= leftLimit &&
+      parseInt(this.character.style.left) <= rightLimit
+    ) {
+      if (this.menu.style.display === "block") {
+        await sleep(100);
+        continue;
+      }
+      this.position = positions[step % 2];
+      step++;
+      for (
+        let i = 0;
+        i < 12 &&
+        this.isWalkable() &&
+        this.task === taskId &&
+        parseInt(this.character.style.left) >= leftLimit &&
+        parseInt(this.character.style.left) <= rightLimit;
+        i++
+      ) {
+        if (this.menu.style.display === "block") {
+          await sleep(100);
+          continue;
+        }
+        this.character.style.left =
+          this.character.style.transform === "rotateY(180deg)"
+            ? `${parseInt(this.character.style.left) + 1}px`
+            : `${parseInt(this.character.style.left) - 1}px`;
+        clonedDiv.style.left =
+          this.character.style.transform === "rotateY(180deg)"
+            ? `${parseInt(clonedDiv.style.left) + 1}px`
+            : `${parseInt(clonedDiv.style.left) - 1}px`;
+        this.adjustXY();
+        this.draw();
+        await sleep(6);
+      }
+    }
+    if (this.task !== taskId) return;
+    if (!this.isWalkable()) return;
+    this.position = 1;
+    this.character.style.left =
+      this.character.style.transform === "unset"
+        ? "-96.48px"
+        : `${document.documentElement.clientWidth - 95.67}px`;
+    clonedDiv.remove();
+    this.adjustXY();
+    this.draw();
+  }
+
+  // returns selected div (selected while performing jump on to or steal object action)
+  getSelectedDiv() {
+    const screenEle = this.screen.getElementsByClassName("screen")[0];
+    if (screenEle.getElementsByClassName("div-outline").length)
+      return screenEle.getElementsByClassName("div-outline")[0];
+    else return false;
+  }
+
+  // adjusts x and y coordinate (needs adjustments when the position is changed manually with px)
+  adjustXY() {
+    this.x =
+      (parseInt(this.character.style.left) * 100) /
+      document.documentElement.clientWidth;
+    this.y =
+      ((parseInt(this.character.style.top) + 192) * 100) /
+      document.documentElement.clientHeight;
   }
 }
+
+// helps to steal all styles from selected div (used when performing steal object action)
+const realStyle = (_elem, _style) => {
+  var computedStyle;
+  if (typeof _elem.currentStyle != "undefined") {
+    computedStyle = _elem.currentStyle;
+  } else {
+    computedStyle = document.defaultView.getComputedStyle(_elem, null);
+  }
+
+  return _style ? computedStyle[_style] : computedStyle;
+};
+
+// helps to steal all styles from selected div (used when performing steal object action)
+const copyComputedStyle = (src, dest) => {
+  var s = realStyle(src);
+  for (var i in s) {
+    if (typeof s[i] == "string" && s[i] && i != "cssText" && !/\d/.test(i)) {
+      try {
+        dest.style[i] = s[i];
+        if (i == "font") {
+          dest.style.fontSize = s.fontSize;
+        }
+      } catch (e) {}
+    }
+  }
+};
+
+// returns random integer (random x coordinate while appearing on the screen)
+const randInt = (min, max) => {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+};
+
+// sleep action
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// generates random id (used for the screen id and to generate unique ids for tasks)
+const makeId = () => {
+  let ID = "";
+  let characters = "abcdefghijklmnopqrstuvwxyz0123456789";
+  for (var i = 0; i < 12; i++) {
+    ID += characters.charAt(Math.floor(Math.random() * 36));
+  }
+  return ID;
+};
+
+// dismiss all characters (triggered when the character is changed or clicked dismiss button on the extension)
+const dismissAll = async (msg) => {
+  for (let character of characters) {
+    try {
+      character.dismiss();
+    } catch {}
+  }
+  if (msg) {
+    images = msg.images;
+    if (msg.landAPetByDefault) main();
+  }
+};
+
+// returns the total number of characters
+const getNumberOfCharacters = () => {
+  return document.getElementsByClassName("screen").length;
+};
+
+// spawns a new character
+const main = async () => {
+  const id = makeId();
+  const newCharacter = new Character(id);
+  await newCharacter.drop();
+  characters.push(newCharacter);
+};
+
+// get character info every 1 sec
+setInterval(chrome.runtime.sendMessage, 1000, "getCharacterInfo");
+
+chrome.runtime.sendMessage("getCharacterInfo");
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg === "newChar") {
+    if (getNumberOfCharacters() >= 3)
+      alert("Clone failed! Maximum of 3 shimejis per character.");
+    else main();
+  } else if (msg === "dismissAll") dismissAll();
+  else if (msg?.images?.length === 46 && msg.images[0] !== images[0]) {
+    dismissAll(msg);
+  }
+});

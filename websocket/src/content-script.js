@@ -1125,4 +1125,13 @@ class Character {
       await sleep(800)
     }
   }
+
+  // dismiss action
+  async dismiss() {
+    const taskId = makeId()
+    this.task = taskId
+    if (this.task !== taskId) return
+    await this.walk('left', 'faster')
+    if (this.x < 0) this.character.parentElement.parentElement.remove()
+  }
 }

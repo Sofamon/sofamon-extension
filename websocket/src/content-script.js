@@ -1083,4 +1083,26 @@ class Character {
     }
     document.onmousemove = trackCursor
   }
+
+  // rare action
+  async rare(rounds = Number.MAX_VALUE) {
+    const taskId = makeId()
+    this.task = taskId
+    if (this.task !== taskId) return
+    this.character.style.transform = 'unset'
+    if (!this.isWalkable() || !this.isWalkable('sit')) return
+    const positions = [26, 15, 27, 16, 28, 17, 29]
+    let step = 0
+    while (this.isWalkable('sit') && this.task === taskId && step < rounds) {
+      if (this.menu.style.display === 'block') {
+        await sleep(100)
+        continue
+      }
+      this.position = positions[step % 7]
+      this.draw()
+      step++
+      await sleep(300)
+      if (rounds === step + 1) this.sit()
+    }
+  }
 }

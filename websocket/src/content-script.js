@@ -1134,4 +1134,210 @@ class Character {
     await this.walk('left', 'faster')
     if (this.x < 0) this.character.parentElement.parentElement.remove()
   }
+
+  // jump on to action
+  async jumpOnto(steal = false) {
+    const taskId = makeId()
+    this.task = taskId
+    if (this.task !== taskId) return
+    return new Promise((resolve) => {
+      let selectedDiv = this.getSelectedDiv()
+      if (selectedDiv) selectedDiv.remove()
+      const onClick = async (e) => {
+        e.stopPropagation()
+        e.preventDefault()
+        if (
+          e.target.attributes.src?.value.includes('data:image/png') ||
+          this.menu.contains(e.target)
+        )
+          return
+        document.onmousemove = null
+        document.onclick = null
+        this.position = 22
+        this.draw()
+        const selectedDiv = this.getSelectedDiv()
+        if (steal) {
+          selectedDiv.style.border = 'none'
+          const upMovement =
+            (parseInt(selectedDiv.style.top) +
+              parseInt(selectedDiv.style.minHeight) -
+              parseInt(this.character.style.top) -
+              32) /
+            80
+          let leftMovement
+          if (
+            Math.abs(
+              parseInt(selectedDiv.style.left) -
+              parseInt(this.character.style.left)
+            ) <
+            Math.abs(
+              parseInt(selectedDiv.style.left) +
+              parseInt(selectedDiv.style.minWidth) -
+              parseInt(this.character.style.left)
+            )
+          )
+            leftMovement =
+              (parseInt(selectedDiv.style.left) -
+                parseInt(this.character.style.left) -
+                96) /
+              80
+          else
+            leftMovement =
+              (parseInt(selectedDiv.style.left) +
+                parseInt(selectedDiv.style.minWidth) -
+                parseInt(this.character.style.left) -
+                0) /
+              80
+          if (leftMovement > 0)
+            this.character.style.transform = 'rotateY(180deg)'
+          else this.character.style.transform = 'unset'
+          for (let i = 0; i < 80; i++) {
+            this.character.style.top = `${parseInt(this.character.style.top) + upMovement
+              }px`
+            this.character.style.left = `${parseInt(this.character.style.left) + leftMovement
+              }px`
+            await sleep(10)
+          }
+          this.character.style.transform = 'unset'
+        } else if (selectedDiv.style.borderTop.includes('solid red')) {
+          selectedDiv.style.border = 'none'
+          const upMovement =
+            (parseInt(selectedDiv.style.top) -
+              parseInt(this.character.style.top) -
+              126) /
+            80
+          const leftMovement =
+            (e.x - parseInt(this.character.style.left) - 30) / 80
+          if (leftMovement > 0)
+            this.character.style.transform = 'rotateY(180deg)'
+          else this.character.style.transform = 'unset'
+          for (let i = 0; i < 80; i++) {
+            this.character.style.top = `${parseInt(this.character.style.top) + upMovement
+              }px`
+            this.character.style.left = `${parseInt(this.character.style.left) + leftMovement
+              }px`
+            await sleep(10)
+          }
+          this.character.style.top = `${parseInt(selectedDiv.style.top) - 192
+            }px`
+          this.character.style.left = `${e.x - 96}px`
+          this.position = 1
+        } else if (selectedDiv.style.borderBottom.includes('solid red')) {
+          selectedDiv.style.border = 'none'
+          const upMovement =
+            (parseInt(selectedDiv.style.top) +
+              parseInt(selectedDiv.style.minHeight) -
+              parseInt(this.character.style.top) -
+              126) /
+            80
+          const leftMovement =
+            (e.x - parseInt(this.character.style.left) - 30) / 80
+          if (leftMovement > 0)
+            this.character.style.transform = 'rotateY(180deg)'
+          else this.character.style.transform = 'unset'
+          for (let i = 0; i < 80; i++) {
+            this.character.style.top = `${parseInt(this.character.style.top) + upMovement
+              }px`
+            this.character.style.left = `${parseInt(this.character.style.left) + leftMovement
+              }px`
+            await sleep(10)
+          }
+          this.character.style.top = `${parseInt(selectedDiv.style.top) +
+            parseInt(selectedDiv.style.minHeight) -
+            192
+            }px`
+          this.character.style.left = `${e.x - 96}px`
+          this.position = 1
+        } else if (selectedDiv.style.borderLeft.includes('solid red')) {
+          selectedDiv.style.border = 'none'
+          const upMovement = (e.y - parseInt(this.character.style.top)) / 80
+          const leftMovement =
+            (parseInt(selectedDiv.style.left) -
+              parseInt(this.character.style.left) -
+              96) /
+            80
+          if (leftMovement > 0)
+            this.character.style.transform = 'rotateY(180deg)'
+          else this.character.style.transform = 'unset'
+          for (let i = 0; i < 80; i++) {
+            this.character.style.top = `${parseInt(this.character.style.top) + upMovement
+              }px`
+            this.character.style.left = `${parseInt(this.character.style.left) + leftMovement
+              }px`
+            await sleep(10)
+          }
+          this.character.style.transform = 'rotateY(180deg)'
+          this.character.style.top = `${e.y - 96}px`
+          this.character.style.left = `${parseInt(selectedDiv.style.left) - 125
+            }px`
+          this.position = 13
+        } else if (selectedDiv.style.borderRight.includes('solid red')) {
+          selectedDiv.style.border = 'none'
+          const upMovement = (e.y - parseInt(this.character.style.top)) / 80
+          const leftMovement =
+            (parseInt(selectedDiv.style.left) +
+              parseInt(selectedDiv.style.minWidth) -
+              parseInt(this.character.style.left) -
+              30) /
+            80
+          if (leftMovement > 0)
+            this.character.style.transform = 'rotateY(180deg)'
+          else this.character.style.transform = 'unset'
+          for (let i = 0; i < 80; i++) {
+            this.character.style.top = `${parseInt(this.character.style.top) + upMovement
+              }px`
+            this.character.style.left = `${parseInt(this.character.style.left) + leftMovement
+              }px`
+            await sleep(10)
+          }
+          this.character.style.transform = 'unset'
+          this.character.style.top = `${e.y - 96}px`
+          this.character.style.left = `${parseInt(selectedDiv.style.left) +
+            parseInt(selectedDiv.style.minWidth) -
+            65
+            }px`
+          this.position = 13
+        }
+        this.adjustXY()
+        this.draw()
+        resolve()
+      }
+      document.onmousemove = (e) => {
+        if (
+          e.target.style.position === 'relative' &&
+          e.target.style.visibility === 'hidden'
+        )
+          return
+        if (this.character.contains(e.target)) return
+        this.selectedDiv = e.target
+        this.selectedDiv.onclick = onClick
+        const { top, left, height, width } = e.target.getBoundingClientRect()
+        const div = document.createElement('div')
+        div.style.position = 'absolute'
+        div.style.top = `${top}px`
+        div.style.left = `${left}px`
+        div.style.minHeight = `${height}px`
+        div.style.minWidth = `${width}px`
+        if (steal) div.style.border = '3px solid red'
+        else if (left + 10 > e.x) div.style.borderLeft = '3px solid red'
+        else if (left + width - 10 < e.x)
+          div.style.borderRight = '3px solid red'
+        else if (top + height / 2 < e.y)
+          div.style.borderBottom = '3px solid red'
+        else div.style.borderTop = '3px solid red'
+        div.className = 'div-outline'
+        selectedDiv = this.getSelectedDiv()
+        if (selectedDiv) selectedDiv.remove()
+        const screenEle = this.screen.getElementsByClassName('screen')[0]
+        screenEle.appendChild(div)
+      }
+      document.onmouseout = (e) => {
+        if (
+          !e.target.attributes.src?.value.includes('data:image/png') &&
+          !this.menu.contains(e.target)
+        )
+          e.target.onclick = null
+      }
+    })
+  }
 }

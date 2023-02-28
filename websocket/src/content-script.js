@@ -1064,4 +1064,23 @@ class Character {
     this.position = 11
     this.draw()
   }
+
+  // watch action
+  watch() {
+    const taskId = 'watch'
+    this.task = taskId
+    if (this.task !== taskId) return
+    this.character.style.transform = 'unset'
+    if (!this.isWalkable() || !this.isWalkable('sit')) return
+    this.position = 26
+    this.draw()
+    const trackCursor = ({ x }) => {
+      if (this.menu.style.display === 'block') return
+      if (this.task !== taskId) document.onmousemove = null
+      else if ((this.x * document.documentElement.clientWidth) / 100 + 96 < x)
+        this.character.style.transform = 'rotateY(180deg)'
+      else this.character.style.transform = 'unset'
+    }
+    document.onmousemove = trackCursor
+  }
 }

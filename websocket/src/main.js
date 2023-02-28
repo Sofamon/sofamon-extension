@@ -142,3 +142,45 @@ chrome.runtime.onMessage.addListener((msg) => {
       landAPetByDefault,
     });
 });
+
+//----------------------------------------------------------------------------------------------------------------
+
+let walletConnected = false;
+let walletAddr = "";
+
+chrome.storage.local.get(["walletConnected"]).then(async (result) => {
+  if (result?.walletConnected !== undefined) {
+    walletConnected = result.walletConnected;
+  } else chrome.storage.local.set({ walletConnected });
+});
+
+chrome.storage.local.get(["walletAddr"]).then(async (result) => {
+  if (result?.walletAddr !== undefined) {
+    walletAddr = result.walletAddr;
+  }
+});
+
+chrome.runtime.onMessageExternal.addListener((msg, sender) => {
+  if (sender.url?.includes("http://localhost:3000/")) {
+    console.log("listen from http://localhost:3000/");
+    if (msg.connected) {
+      walletConnected = true;
+      chrome.storage.local.set({ walletConnected });
+      walletAddr = msg.addr;
+      chrome.storage.local.set({ walletAddr: msg.addr });
+    } else if (msg?.connected === false) {
+      walletConnected = false;
+      chrome.storage.local.remove("walletAddr");
+      chrome.storage.local.set({ walletConnected });
+    }
+  }
+});
+
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg === "getWalletStatus")
+    chrome.runtime.sendMessage({ walletConnected });
+});
+
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg === "getWalletAddr") chrome.runtime.sendMessage({ walletAddr });
+});

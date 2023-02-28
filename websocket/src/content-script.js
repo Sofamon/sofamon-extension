@@ -1053,4 +1053,15 @@ class Character {
     this.adjustXY();
     this.draw();
   }
+
+  // sit action
+  sit() {
+    const taskId = makeId()
+    this.task = taskId
+    if (this.task !== taskId) return
+    this.character.style.transform = 'unset'
+    if (!this.isWalkable() || !this.isWalkable('sit')) return
+    this.position = 11
+    this.draw()
+  }
 }

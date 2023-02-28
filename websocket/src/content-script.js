@@ -1105,4 +1105,24 @@ class Character {
       if (rounds === step + 1) this.sit()
     }
   }
+
+  // jiggle action
+  async jiggle() {
+    const taskId = makeId()
+    this.task = taskId
+    if (this.task !== taskId) return
+    this.character.style.transform = 'unset'
+    const positions = [30, 31]
+    let step = 0
+    while (this.isWalkable('jiggle') && this.task === taskId) {
+      if (this.menu.style.display === 'block') {
+        await sleep(100)
+        continue
+      }
+      this.position = positions[step % 2]
+      this.draw()
+      step++
+      await sleep(800)
+    }
+  }
 }

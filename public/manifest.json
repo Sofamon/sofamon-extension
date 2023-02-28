@@ -4,8 +4,18 @@
   "manifest_version": 3,
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtiy2JO/Ut2jnxp2MK075EuEpiMr4ldUHIdDNafq2rdFQ6s7BQcfKJoXVC92gB640L1DaTApY7QfVrs90X+LwLYZC3nL73fG3S5zwoo+16PkZK1AuqrzduVYQpPtxxFLvWrOYISqQKGa+0Q9QxcfLFFKSK3k6gzG4inLhH7jrUfomeMnMcFwNIGGrGsE4ABB4a22y6MeSIEne/YZE7FFFlqJzh9+e9ToL8A4jRkArgpAHHiUwxPnRQFHHG7qOYkFyVjPZiLgCxKY9264CTzCCGoARfdrFonGof+RQDy0NJvgkw5eJ3iLp16IElUqlE0W8pksz9U2aCPm+C0ZrCqldvQIDAQAB",
   "description": "sofamon extension",
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  },
   "action": {
     "default_title": "sofamon extension",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    },
     "default_popup": "index.html"
   },
   "background": {
@@ -13,20 +23,37 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content-script.js"],
-      "css": ["style.css"]
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content-script.js"
+      ],
+      "css": [
+        "style.css"
+      ]
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["images/*.png"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "images/*.png"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
-  "permissions": ["scripting", "storage"],
-  "host_permissions": ["*://*/"],
+  "permissions": [
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*/"
+  ],
   "externally_connectable": {
-    "matches": ["http://localhost:3000/*"]
+    "matches": [
+      "http://localhost:3000/*"
+    ]
   }
 }

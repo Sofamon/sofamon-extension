@@ -2,38 +2,41 @@ const { Alchemy, Network, AlchemySubscription } = require("alchemy-sdk");
 
 const settings = {
   apiKey: "1a8kyQNAq67i9DPkdO-aQ0r8ljRDrizd",
-  network: Network.ETH_MAINNET,
+  network: Network.ETH_GOERLI,
 };
 const alchemy = new Alchemy(settings);
 
-alchemy.ws.on(
-  {
-    method: AlchemySubscription.MINED_TRANSACTIONS,
-    addresses: [
-      {
-        to: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-      },
-    ],
-    includeRemoved: true,
-    hashesOnly: false,
-  },
-  (_tx) => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      console.log(_tx);
-      if (tabs[0]?.url)
-        chrome.tabs.sendMessage(
-          tabs[0].id,
-          { info: "newTxn", data: _tx },
-          () => {
-            let lastError = chrome.runtime.lastError;
-            if (lastError) {
-              return true;
+const makeWSConnection = (addr) => {
+  alchemy.ws.removeAllListeners();
+  alchemy.ws.on(
+    {
+      method: AlchemySubscription.MINED_TRANSACTIONS,
+      addresses: [
+        {
+          from: addr,
+        },
+      ],
+      includeRemoved: true,
+      hashesOnly: false,
+    },
+    (_tx) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        console.log(_tx);
+        if (tabs[0]?.url)
+          chrome.tabs.sendMessage(
+            tabs[0].id,
+            { info: "newTxn", data: _tx },
+            () => {
+              let lastError = chrome.runtime.lastError;
+              if (lastError) {
+                return true;
+              }
             }
-          }
-        );
-    });
-  }
-);
+          );
+      });
+    }
+  );
+};
 
 //----------------------------------------------------------------------------------------------------------------
 
@@ -157,6 +160,7 @@ chrome.storage.local.get(["walletConnected"]).then(async (result) => {
 chrome.storage.local.get(["walletAddr"]).then(async (result) => {
   if (result?.walletAddr !== undefined) {
     walletAddr = result.walletAddr;
+    makeWSConnection(walletAddr);
   }
 });
 
@@ -164,11 +168,13 @@ chrome.runtime.onMessageExternal.addListener((msg, sender) => {
   if (sender.url?.includes("http://localhost:3000/")) {
     console.log("listen from http://localhost:3000/");
     if (msg.connected) {
+      walletAddr = msg.addr;
+      makeWSConnection(walletAddr);
       walletConnected = true;
       chrome.storage.local.set({ walletConnected });
-      walletAddr = msg.addr;
       chrome.storage.local.set({ walletAddr: msg.addr });
     } else if (msg?.connected === false) {
+      alchemy.ws.removeAllListeners();
       walletConnected = false;
       chrome.storage.local.remove("walletAddr");
       chrome.storage.local.set({ walletConnected });

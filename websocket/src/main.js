@@ -77,27 +77,15 @@ chrome.storage.local.get(["landAPetByDefault"]).then(async (result) => {
 });
 
 chrome.storage.local.get(["characterInfo"]).then(async (result) => {
-  if (!result.characterInfo) {
-    const res = await cacheAllImages();
-    let images = [];
-    for (let i = 1; i < 47; i++) {
-      for (let j of res) {
-        if (j.id === i) {
-          images.push(j.data);
-          break;
-        }
-      }
-    }
-    characterInfo = JSON.stringify({ name: "Noun", images, level: 0 });
-    chrome.storage.local.set({ characterInfo });
-  } else characterInfo = result.characterInfo;
+  if (result.characterInfo) characterInfo = result.characterInfo;
 });
 
 chrome.runtime.onMessageExternal.addListener(async (msg, sender) => {
   if (
     sender.url?.includes("http://localhost:3000/") &&
     msg?.info === "changeCharacter" &&
-    msg?.characterName !== JSON.parse(characterInfo).name
+    (characterInfo === undefined ||
+      msg?.characterName !== JSON.parse(characterInfo).name)
   ) {
     const res = await cacheAllImages(msg?.characterId);
     let images = [];
@@ -127,10 +115,17 @@ chrome.runtime.onMessage.addListener((msg) => {
       if (tabs[0]?.url)
         chrome.tabs.sendMessage(
           tabs[0].id,
-          {
-            ...JSON.parse(characterInfo),
-            landAPetByDefault,
-          },
+          characterInfo === undefined
+            ? {
+                name: undefined,
+                images: [],
+                level: NaN,
+                landAPetByDefault: false,
+              }
+            : {
+                ...JSON.parse(characterInfo),
+                landAPetByDefault,
+              },
           () => {
             let lastError = chrome.runtime.lastError;
             if (lastError) {
@@ -140,10 +135,19 @@ chrome.runtime.onMessage.addListener((msg) => {
         );
     });
   } else if (msg === "getCharacterName")
-    chrome.runtime.sendMessage({
-      ...JSON.parse(characterInfo),
-      landAPetByDefault,
-    });
+    chrome.runtime.sendMessage(
+      characterInfo === undefined
+        ? {
+            name: undefined,
+            images: [],
+            level: NaN,
+            landAPetByDefault: false,
+          }
+        : {
+            ...JSON.parse(characterInfo),
+            landAPetByDefault,
+          }
+    );
 });
 
 //----------------------------------------------------------------------------------------------------------------
@@ -168,6 +172,16 @@ chrome.runtime.onMessageExternal.addListener((msg, sender) => {
   if (sender.url?.includes("http://localhost:3000/")) {
     console.log("listen from http://localhost:3000/");
     if (msg.connected) {
+      if (walletAddr !== msg.addr) {
+        characterInfo = undefined;
+        chrome.storage.local.remove("characterInfo");
+        chrome.tabs.query(
+          { active: true, currentWindow: true },
+          function (tabs) {
+            if (tabs[0]?.url) chrome.tabs.sendMessage(tabs[0].id, "dismissAll");
+          }
+        );
+      }
       walletAddr = msg.addr;
       makeWSConnection(walletAddr);
       walletConnected = true;
@@ -176,6 +190,8 @@ chrome.runtime.onMessageExternal.addListener((msg, sender) => {
     } else if (msg?.connected === false) {
       alchemy.ws.removeAllListeners();
       walletConnected = false;
+      characterInfo = undefined;
+      chrome.storage.local.remove("characterInfo");
       chrome.storage.local.remove("walletAddr");
       chrome.storage.local.set({ walletConnected });
     }

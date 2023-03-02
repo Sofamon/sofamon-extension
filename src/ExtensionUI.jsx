@@ -67,7 +67,7 @@ const ExtensionUI = () => {
               fontFamily: "Cantarell, Arial, sans-serif",
             }}
           >
-            hikari.xyz
+            sofamon.xyz
           </center>
           <center>
             <img

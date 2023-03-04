@@ -242,3 +242,17 @@ chrome.runtime.onMessage.addListener((msg) => {
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg === "getWalletAddr") chrome.runtime.sendMessage({ walletAddr });
 });
+
+chrome.runtime.onMessage.addListener(async (msg) => {
+  if (msg === "getETHPrice") {
+    let res = await fetch("https://core-api.prod.blur.io/v1/prices");
+    res = await res.json();
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      if (tabs[0]?.url)
+        chrome.tabs.sendMessage(tabs[0].id, {
+          info: "ethPrice",
+          price: res.ethereum.usd,
+        });
+    });
+  }
+});

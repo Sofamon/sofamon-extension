@@ -91,7 +91,7 @@ class Character {
     this.handleMenu();
     this.position =
       this.config.positions.stand.id + this.config.positions.stand.default;
-    this.x = randInt(10, 90);
+      this.x = randInt(80, 95)
     this.y = 0;
     this.onAir = false;
     this.character = null;
@@ -1026,7 +1026,7 @@ class Character {
         this.config.dimension / 2.26
       }px`;
       this.draw();
-      this.y += 0.5;
+      this.y += 1.5;
       if (gravity < 30) gravity += 0.5;
       else if (gravity < 35) gravity += 0.25;
       else if (gravity < 40) gravity += 0.1;
@@ -1082,15 +1082,15 @@ class Character {
         }
         this.character.style.left =
           this.character.style.transform === "rotateY(180deg)"
-            ? `${parseInt(this.character.style.left) + 1}px`
-            : `${parseInt(this.character.style.left) - 1}px`;
+            ? `${parseInt(this.character.style.left) + 3}px`
+            : `${parseInt(this.character.style.left) - 3}px`;
         clonedDiv.style.left =
           this.character.style.transform === "rotateY(180deg)"
-            ? `${parseInt(clonedDiv.style.left) + 1}px`
-            : `${parseInt(clonedDiv.style.left) - 1}px`;
+            ? `${parseInt(clonedDiv.style.left) + 3}px`
+            : `${parseInt(clonedDiv.style.left) - 3}px`;
         this.adjustXY();
         this.draw();
-        await sleep(6);
+        await sleep(2);
       }
     }
     if (this.task !== taskId) return;

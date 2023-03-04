@@ -581,10 +581,11 @@ class Character {
   // sofa mode action
   async sofaMode() {
     this.task = "sofaMode";
-    if (this.task !== taskId) return;
+    if (this.task !== "sofaMode") return;
     for (
       let frame = 1;
-      frame <= this.config.positions.sofaMode.frames && this.task === taskId;
+      frame <= this.config.positions.sofaMode.frames &&
+      this.task === "sofaMode";
       frame++
     ) {
       const frameId =

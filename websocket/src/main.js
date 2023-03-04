@@ -98,6 +98,19 @@ const cacheAllImages = async (id = "bunny") => {
   });
 };
 
+const mintNFT = async (id) => {
+  const res = await cacheAllImages(id);
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs[0]?.url)
+      chrome.tabs.sendMessage(tabs[0].id, { info: "mintNFT", ...res }, () => {
+        let lastError = chrome.runtime.lastError;
+        if (lastError) {
+          return true;
+        }
+      });
+  });
+};
+
 chrome.storage.local.get(["landAPetByDefault"]).then(async (result) => {
   if (result?.landAPetByDefault !== undefined)
     landAPetByDefault = result.landAPetByDefault;
@@ -194,10 +207,9 @@ chrome.storage.local.get(["walletAddr"]).then(async (result) => {
 });
 
 chrome.runtime.onMessageExternal.addListener((msg, sender) => {
-  const frontendActivities = ["mintNFT", "levelUp"];
   if (sender.url?.includes("http://localhost:3000/")) {
     console.log("listen from http://localhost:3000/");
-    if (frontendActivities.includes(msg?.info))
+    if (msg?.info === "levelUp")
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0]?.url)
           chrome.tabs.sendMessage(tabs[0].id, msg, () => {
@@ -207,6 +219,7 @@ chrome.runtime.onMessageExternal.addListener((msg, sender) => {
             }
           });
       });
+    else if (msg?.info === "mintNFT") mintNFT(msg?.character);
     else if (msg.connected) {
       if (walletAddr !== msg.addr) {
         characterInfo = undefined;

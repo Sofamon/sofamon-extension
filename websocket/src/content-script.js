@@ -82,30 +82,44 @@ let characters = [];
 
 class Character {
   constructor(id) {
-    this.config = config;
-    this.id = id;
-    this.images = images;
-    this.screen = null;
-    this.menu = null;
-    this.init();
-    this.handleMenu();
-    this.position =
-      this.config.positions.stand.id + this.config.positions.stand.default;
-      this.x = randInt(80, 95)
-    this.y = 0;
-    this.onAir = false;
-    this.character = null;
-    this.selectedDiv = null;
-    this.task = null;
-    this.ethPrice = 1562.38;
-    this.updateETHPrice();
-    this.draw();
-    this.detectScroll();
-    this.reactOnChainActivity("buyNFT", "buyNFT");
-    this.reactOnChainActivity("sendTransaction", "sendTransaction");
-    this.reactOnChainActivity("getAirdrop", "getAirdrop");
-    this.reactOnChainActivity("mintNFT", "birthOfNFT");
-    this.reactOnChainActivity("levelUp", "levelUp");
+    if (id?.info === "mintNFT") {
+      this.config = id.config;
+      this.id = id.info;
+      this.images = id.images;
+      this.screen = null;
+      this.menu = null;
+      this.init();
+      this.position =
+        this.config.positions.stand.id + this.config.positions.stand.default;
+      this.x = randInt(15, 85);
+      this.y = 100;
+      this.character = null;
+      this.draw();
+    } else {
+      this.config = config;
+      this.id = id;
+      this.images = images;
+      this.screen = null;
+      this.menu = null;
+      this.init();
+      this.handleMenu();
+      this.position =
+        this.config.positions.stand.id + this.config.positions.stand.default;
+      this.x = randInt(85, 95);
+      this.y = 0;
+      this.onAir = false;
+      this.character = null;
+      this.selectedDiv = null;
+      this.task = null;
+      this.ethPrice = 1562.38;
+      this.updateETHPrice();
+      this.draw();
+      this.detectScroll();
+      this.reactOnChainActivity("buyNFT", "buyNFT");
+      this.reactOnChainActivity("sendTransaction", "sendTransaction");
+      this.reactOnChainActivity("getAirdrop", "getAirdrop");
+      this.reactOnChainActivity("levelUp", "levelUp");
+    }
   }
 
   //  initializes everything (creates root div where the character will move)
@@ -1220,6 +1234,12 @@ const main = async () => {
   characters.push(newCharacter);
 };
 
+const mintNFT = async (msg) => {
+  const character = new Character(msg);
+  await character.birthOfNFT();
+  character.character.parentElement.parentElement.remove();
+};
+
 // get character info every 1 sec
 setInterval(chrome.runtime.sendMessage, 1000, "getCharacterInfo");
 
@@ -1230,6 +1250,7 @@ chrome.runtime.onMessage.addListener((msg) => {
       alert("Clone failed! Maximum of 3 shimejis per character.");
     else main();
   } else if (msg === "dismissAll") dismissAll();
+  else if (msg?.info === "mintNFT") mintNFT(msg);
   else if (msg?.images) {
     const keys = Object.keys(msg.images);
     if (keys.length > 0 && msg.images[keys[0]] !== images[keys[0]])

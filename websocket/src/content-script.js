@@ -60,10 +60,6 @@ const HTML = `
   <li class="menu-item">
     <span>fall</span>
   </li>
-  <li style="padding: 0; margin: 0.35em 0; border-bottom: 1px solid #e6e6e6"></li>
-  <li class="menu-item">
-    <span>hug</span>
-  </li>
 </ul>
 <div class="screen" style="
       position: fixed;
@@ -76,7 +72,7 @@ const HTML = `
     "></div>
 `;
 
-const MENU_HEIGHT = 426;
+const MENU_HEIGHT = 388;
 
 //---------------------------------------------------------------------------------------------------------------------------
 
@@ -101,8 +97,15 @@ class Character {
     this.character = null;
     this.selectedDiv = null;
     this.task = null;
+    this.ethPrice = 1562.38;
+    this.updateETHPrice();
     this.draw();
     this.detectScroll();
+    this.reactOnChainActivity("buyNFT", "buyNFT");
+    this.reactOnChainActivity("sendTransaction", "sendTransaction");
+    this.reactOnChainActivity("getAirdrop", "getAirdrop");
+    this.reactOnChainActivity("mintNFT", "birthOfNFT");
+    this.reactOnChainActivity("levelUp", "levelUp");
   }
 
   //  initializes everything (creates root div where the character will move)
@@ -149,6 +152,7 @@ class Character {
     sofaMode.onclick = () => this.sofaMode();
 
     const checkPrice = this.menu.children[5];
+    checkPrice.onclick = () => this.checkPrice();
 
     const birthOfNFT = this.menu.children[7];
     birthOfNFT.onclick = () => this.birthOfNFT();
@@ -173,8 +177,6 @@ class Character {
 
     const fall = this.menu.children[15];
     fall.onclick = () => this.drop();
-
-    const hug = this.menu.children[17];
   }
 
   //  handles submenu/menu (hides/displays submenu)
@@ -295,7 +297,6 @@ class Character {
           this.menu.children[11].classList.remove("menu-disabled");
           this.menu.children[13].classList.remove("menu-disabled");
           this.menu.children[14].classList.remove("menu-disabled");
-          this.menu.children[17].classList.remove("menu-disabled");
         } else {
           this.menu.children[2].classList.add("menu-disabled");
           this.menu.children[3].classList.add("menu-disabled");
@@ -308,7 +309,6 @@ class Character {
           this.menu.children[11].classList.add("menu-disabled");
           this.menu.children[13].classList.add("menu-disabled");
           this.menu.children[14].classList.add("menu-disabled");
-          this.menu.children[17].classList.add("menu-disabled");
         }
         if (this.y !== 100)
           this.menu.children[15].classList.remove("menu-disabled");
@@ -393,6 +393,7 @@ class Character {
       (this.x / 100) * document.documentElement.clientWidth
     }px`;
     this.character.src = this.images[this.position];
+    this.handleCheckPrice();
   }
 
   // drop action
@@ -579,9 +580,11 @@ class Character {
 
   // sofa mode action
   async sofaMode() {
+    this.task = "sofaMode";
+    if (this.task !== taskId) return;
     for (
       let frame = 1;
-      frame <= this.config.positions.sofaMode.frames;
+      frame <= this.config.positions.sofaMode.frames && this.task === taskId;
       frame++
     ) {
       const frameId =
@@ -590,25 +593,89 @@ class Character {
           : frame.toString();
       this.position = this.config.positions.sofaMode.id + frameId;
       this.draw();
-      await sleep(125);
+      await sleep(this.config.positions.sofaMode.delay);
     }
   }
 
-  // birth of nft action
-  async birthOfNFT() {
+  // check price action
+  async checkPrice() {
+    const taskId = makeId();
+    this.task = taskId;
+    if (this.task !== taskId) return;
+    chrome.runtime.sendMessage("getETHPrice");
+    this.character.style.transform = "unset";
     for (
       let frame = 1;
-      frame <= this.config.positions.birthOfNFT.frames;
+      frame <= this.config.positions.checkPrice.frames && this.task === taskId;
       frame++
     ) {
       const frameId =
         frame.toString().length === 1
           ? `0${frame.toString()}`
           : frame.toString();
-      this.position = this.config.positions.birthOfNFT.id + frameId;
+      this.position = this.config.positions.checkPrice.id + frameId;
       this.draw();
-      await sleep(125);
+      await sleep(this.config.positions.checkPrice.delay);
     }
+  }
+
+  // handle check price action
+  async handleCheckPrice() {
+    if (
+      this.config.positions.checkPrice.id +
+        this.config.positions.checkPrice.final !==
+      this.position
+    ) {
+      const checkPriceSpan =
+        this.screen.getElementsByClassName("check-price-span");
+      if (checkPriceSpan.length > 0) checkPriceSpan[0].remove();
+    } else {
+      const checkPriceSpan =
+        this.screen.getElementsByClassName("check-price-span");
+      if (checkPriceSpan.length > 0) return;
+      const span = document.createElement("span");
+      span.classList.add("check-price-span");
+      span.style.pointerEvents = "none";
+      span.style.position = "absolute";
+      span.style.top = `${
+        (this.y / 100) * document.documentElement.clientHeight -
+        this.config.dimension / 2.7
+      }px`;
+      span.style.left = `${
+        (this.x / 100) * document.documentElement.clientWidth +
+        this.config.dimension / 4.6
+      }px`;
+      span.style.zIndex = 2147483646;
+      span.style.fontSize = "20px";
+      span.style.fontWeight = 600;
+      span.style.fontFamily = "sans-serif";
+      span.innerHTML = "$" + this.ethPrice;
+      this.screen.appendChild(span);
+    }
+  }
+
+  // birth of nft action
+  async birthOfNFT() {
+    const taskId = makeId();
+    this.task = taskId;
+    if (this.task !== taskId) return;
+    for (let loop = 0; loop < this.config.positions.birthOfNFT.loop; loop++) {
+      for (
+        let frame = 1;
+        frame <= this.config.positions.birthOfNFT.frames &&
+        this.task === taskId;
+        frame++
+      ) {
+        const frameId =
+          frame.toString().length === 1
+            ? `0${frame.toString()}`
+            : frame.toString();
+        this.position = this.config.positions.birthOfNFT.id + frameId;
+        this.draw();
+        await sleep(this.config.positions.birthOfNFT.delay);
+      }
+    }
+    if (this.task !== taskId) return;
     this.position =
       this.config.positions.stand.id + this.config.positions.stand.default;
     this.draw();
@@ -616,19 +683,30 @@ class Character {
 
   // send transaction action
   async sendTransaction() {
+    const taskId = makeId();
+    this.task = taskId;
+    if (this.task !== taskId) return;
     for (
-      let frame = 1;
-      frame <= this.config.positions.sendTransaction.frames;
-      frame++
+      let loop = 0;
+      loop < this.config.positions.sendTransaction.loop;
+      loop++
     ) {
-      const frameId =
-        frame.toString().length === 1
-          ? `0${frame.toString()}`
-          : frame.toString();
-      this.position = this.config.positions.sendTransaction.id + frameId;
-      this.draw();
-      await sleep(125);
+      for (
+        let frame = 1;
+        frame <= this.config.positions.sendTransaction.frames &&
+        this.task === taskId;
+        frame++
+      ) {
+        const frameId =
+          frame.toString().length === 1
+            ? `0${frame.toString()}`
+            : frame.toString();
+        this.position = this.config.positions.sendTransaction.id + frameId;
+        this.draw();
+        await sleep(this.config.positions.sendTransaction.delay);
+      }
     }
+    if (this.task !== taskId) return;
     this.position =
       this.config.positions.stand.id + this.config.positions.stand.default;
     this.draw();
@@ -636,15 +714,25 @@ class Character {
 
   // buy nft action
   async buyNFT() {
-    for (let frame = 1; frame <= this.config.positions.buyNFT.frames; frame++) {
-      const frameId =
-        frame.toString().length === 1
-          ? `0${frame.toString()}`
-          : frame.toString();
-      this.position = this.config.positions.buyNFT.id + frameId;
-      this.draw();
-      await sleep(125);
+    const taskId = makeId();
+    this.task = taskId;
+    if (this.task !== taskId) return;
+    for (let loop = 0; loop < this.config.positions.buyNFT.loop; loop++) {
+      for (
+        let frame = 1;
+        frame <= this.config.positions.buyNFT.frames && this.task === taskId;
+        frame++
+      ) {
+        const frameId =
+          frame.toString().length === 1
+            ? `0${frame.toString()}`
+            : frame.toString();
+        this.position = this.config.positions.buyNFT.id + frameId;
+        this.draw();
+        await sleep(this.config.positions.buyNFT.delay);
+      }
     }
+    if (this.task !== taskId) return;
     this.position =
       this.config.positions.stand.id + this.config.positions.stand.default;
     this.draw();
@@ -652,19 +740,26 @@ class Character {
 
   // get air drop action
   async getAirdrop() {
-    for (
-      let frame = 1;
-      frame <= this.config.positions.getAirdrop.frames;
-      frame++
-    ) {
-      const frameId =
-        frame.toString().length === 1
-          ? `0${frame.toString()}`
-          : frame.toString();
-      this.position = this.config.positions.getAirdrop.id + frameId;
-      this.draw();
-      await sleep(125);
+    const taskId = makeId();
+    this.task = taskId;
+    if (this.task !== taskId) return;
+    for (let loop = 0; loop < this.config.positions.getAirdrop.loop; loop++) {
+      for (
+        let frame = 1;
+        frame <= this.config.positions.getAirdrop.frames &&
+        this.task === taskId;
+        frame++
+      ) {
+        const frameId =
+          frame.toString().length === 1
+            ? `0${frame.toString()}`
+            : frame.toString();
+        this.position = this.config.positions.getAirdrop.id + frameId;
+        this.draw();
+        await sleep(this.config.positions.getAirdrop.delay);
+      }
     }
+    if (this.task !== taskId) return;
     this.position =
       this.config.positions.stand.id + this.config.positions.stand.default;
     this.draw();
@@ -672,19 +767,25 @@ class Character {
 
   // level up action
   async levelUp() {
-    for (
-      let frame = 1;
-      frame <= this.config.positions.levelUp.frames;
-      frame++
-    ) {
-      const frameId =
-        frame.toString().length === 1
-          ? `0${frame.toString()}`
-          : frame.toString();
-      this.position = this.config.positions.levelUp.id + frameId;
-      this.draw();
-      await sleep(125);
+    const taskId = makeId();
+    this.task = taskId;
+    if (this.task !== taskId) return;
+    for (let loop = 0; loop < this.config.positions.levelUp.loop; loop++) {
+      for (
+        let frame = 1;
+        frame <= this.config.positions.levelUp.frames && this.task === taskId;
+        frame++
+      ) {
+        const frameId =
+          frame.toString().length === 1
+            ? `0${frame.toString()}`
+            : frame.toString();
+        this.position = this.config.positions.levelUp.id + frameId;
+        this.draw();
+        await sleep(this.config.positions.levelUp.delay);
+      }
     }
+    if (this.task !== taskId) return;
     this.position =
       this.config.positions.stand.id + this.config.positions.stand.default;
     this.draw();
@@ -1024,6 +1125,25 @@ class Character {
     this.y =
       ((parseInt(this.character.style.top) + this.config.dimension) * 100) /
       document.documentElement.clientHeight;
+  }
+
+  // react on chain activity
+  reactOnChainActivity(activity, func) {
+    chrome.runtime.onMessage.addListener((msg) => {
+      if (msg?.info === activity && this.task !== "sofaMode") {
+        this[func]();
+        if (msg?.data) console.log(msg?.data);
+      }
+    });
+  }
+
+  // update ETH price
+  updateETHPrice() {
+    chrome.runtime.onMessage.addListener((msg) => {
+      if (msg?.info === "ethPrice") {
+        this.ethPrice = msg?.price;
+      }
+    });
   }
 }
 

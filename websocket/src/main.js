@@ -6,35 +6,53 @@ const settings = {
 };
 const alchemy = new Alchemy(settings);
 
-const makeWSConnection = (addr) => {
-  alchemy.ws.removeAllListeners();
+const triggerActionOnChainActivity = (from, to, action) => {
   alchemy.ws.on(
     {
       method: AlchemySubscription.MINED_TRANSACTIONS,
       addresses: [
         {
-          from: addr,
+          from: from,
+          to: to,
         },
       ],
       includeRemoved: true,
       hashesOnly: false,
     },
     (_tx) => {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        console.log(_tx);
-        if (tabs[0]?.url)
-          chrome.tabs.sendMessage(
-            tabs[0].id,
-            { info: "newTxn", data: _tx },
-            () => {
-              let lastError = chrome.runtime.lastError;
-              if (lastError) {
-                return true;
+      if (
+        action !== "sendTransaction" ||
+        (action === "sendTransaction" && _tx?.transaction?.input === "0x")
+      )
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]?.url)
+            chrome.tabs.sendMessage(
+              tabs[0].id,
+              { info: action, data: _tx },
+              () => {
+                let lastError = chrome.runtime.lastError;
+                if (lastError) {
+                  return true;
+                }
               }
-            }
-          );
-      });
+            );
+        });
     }
+  );
+};
+
+const makeWSConnection = (addr) => {
+  alchemy.ws.removeAllListeners();
+  triggerActionOnChainActivity(
+    addr,
+    "0x00000000000001ad428e4906ae43d8f9852d0dd6",
+    "buyNFT"
+  );
+  triggerActionOnChainActivity(addr, "", "sendTransaction");
+  triggerActionOnChainActivity(
+    "0x9d97fbc55fc28022e1df7617c9fd447f30b51369",
+    addr,
+    "getAirdrop"
   );
 };
 
@@ -95,11 +113,12 @@ chrome.runtime.onMessageExternal.addListener(async (msg, sender) => {
     sender.url?.includes("http://localhost:3000/") &&
     msg?.info === "changeCharacter" &&
     (characterInfo === undefined ||
-      msg?.characterName !== JSON.parse(characterInfo).name)
+      msg?.characterId !== JSON.parse(characterInfo).characterId)
   ) {
     const { images, config } = await cacheAllImages(msg?.characterId);
     characterInfo = JSON.stringify({
       name: msg?.characterName,
+      characterId: msg?.characterId,
       images,
       config,
       level: 0,
@@ -120,6 +139,7 @@ chrome.runtime.onMessage.addListener((msg) => {
           characterInfo === undefined
             ? {
                 name: undefined,
+                characterId: undefined,
                 images: {},
                 config: {},
                 level: NaN,
@@ -142,6 +162,7 @@ chrome.runtime.onMessage.addListener((msg) => {
       characterInfo === undefined
         ? {
             name: undefined,
+            characterId: undefined,
             images: {},
             config: {},
             level: NaN,
@@ -157,7 +178,7 @@ chrome.runtime.onMessage.addListener((msg) => {
 //----------------------------------------------------------------------------------------------------------------
 
 let walletConnected = false;
-let walletAddr = "0x1D05dE4A9EB00A930529B783C2D682715fB250F0";
+let walletAddr = "";
 
 chrome.storage.local.get(["walletConnected"]).then(async (result) => {
   if (result?.walletConnected !== undefined) {
@@ -173,9 +194,20 @@ chrome.storage.local.get(["walletAddr"]).then(async (result) => {
 });
 
 chrome.runtime.onMessageExternal.addListener((msg, sender) => {
+  const frontendActivities = ["mintNFT", "levelUp"];
   if (sender.url?.includes("http://localhost:3000/")) {
     console.log("listen from http://localhost:3000/");
-    if (msg.connected) {
+    if (frontendActivities.includes(msg?.info))
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]?.url)
+          chrome.tabs.sendMessage(tabs[0].id, msg, () => {
+            let lastError = chrome.runtime.lastError;
+            if (lastError) {
+              return true;
+            }
+          });
+      });
+    else if (msg.connected) {
       if (walletAddr !== msg.addr) {
         characterInfo = undefined;
         chrome.storage.local.remove("characterInfo");

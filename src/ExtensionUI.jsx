@@ -34,9 +34,9 @@ const ExtensionUI = () => {
 
   chrome.runtime.sendMessage("getCharacterName");
   chrome.runtime.onMessage.addListener((msg) => {
-    if (msg?.images && msg?.images.length > 0) {
+    if (msg?.images && Object.keys(msg?.images).length > 0) {
       setCharacterName(msg.name);
-      setCharacterImage(msg.images[0]);
+      setCharacterImage(msg?.images["0001"]);
       setCharacterLevel(msg.level);
       setLandAPetByDefault(msg.landAPetByDefault);
     }
@@ -66,7 +66,7 @@ const ExtensionUI = () => {
               fontFamily: "Cantarell, Arial, sans-serif",
             }}
           >
-            sofamon.xyz
+            hikari.xyz
           </center>
           <center>
             <img

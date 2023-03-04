@@ -1,62 +1,11 @@
 const HTML = `
 <ul class="menu" id="menu" style="z-index: 2147483647; display: none; position: fixed">
-  <li class="menu-item menu-disabled">
-    <span>clone</span>
-  </li>
   <li class="menu-item dismiss">
-    <span>dismiss</span>
+    <span>disappear</span>
   </li>
   <li style="padding: 0; margin: 0.35em 0; border-bottom: 1px solid #e6e6e6"></li>
   <li class="menu-item">
-    <span>sit</span>
-  </li>
-  <li class="menu-item rare">
-    <span>rare</span>
-  </li>
-  <li class="menu-item">
-    <span>watch</span>
-  </li>
-  <li class="menu-item">
-    <span>jiggle</span>
-  </li>
-  <li style="padding: 0; margin: 0.35em 0; border-bottom: 1px solid #e6e6e6"></li>
-  <li class="menu-item menu-disabled submenu">
-    <span>ceiling</span>
-    <ul class="menu" style="top: -9.19063px; display: none">
-      <li class="menu-item submenu">
-        <span>left</span>
-        <ul class="menu" style="top: -9.19063px; display: none">
-          <li class="menu-item"><span>slow</span></li>
-          <li class="menu-item"><span>fast</span></li>
-        </ul>
-      </li>
-      <li class="menu-item submenu">
-        <span>right</span>
-        <ul class="menu" style="top: -9.19063px; display: none">
-          <li class="menu-item"><span>slow</span></li>
-          <li class="menu-item"><span>fast</span></li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-  <li class="menu-item menu-disabled submenu">
-    <span>climb</span>
-    <ul class="menu" style="top: -9.19063px; display: none">
-      <li class="menu-item submenu">
-        <span>up</span>
-        <ul class="menu" style="top: -9.19063px; display: none">
-          <li class="menu-item"><span>slow</span></li>
-          <li class="menu-item"><span>fast</span></li>
-        </ul>
-      </li>
-      <li class="menu-item submenu">
-        <span>down</span>
-        <ul class="menu" style="top: -9.19063px; display: none">
-          <li class="menu-item"><span>slow</span></li>
-          <li class="menu-item"><span>fast</span></li>
-        </ul>
-      </li>
-    </ul>
+    <span>stand</span>
   </li>
   <li class="menu-item submenu">
     <span>walk</span>
@@ -79,16 +28,27 @@ const HTML = `
       </li>
     </ul>
   </li>
-  <li class="menu-item submenu">
-    <span>creep</span>
-    <ul class="menu" style="top: -9.19063px; display: none">
-      <li class="menu-item">
-        <span>left</span>
-      </li>
-      <li class="menu-item">
-        <span>right</span>
-      </li>
-    </ul>
+  <li class="menu-item">
+    <span>sofa mode</span>
+  </li>
+  <li class="menu-item">
+    <span>check price</span>
+  </li>
+  <li style="padding: 0; margin: 0.35em 0; border-bottom: 1px solid #e6e6e6"></li>
+  <li class="menu-item">
+    <span>birth of nft</span>
+  </li>
+  <li class="menu-item">
+    <span>send transaction</span>
+  </li>
+  <li class="menu-item">
+    <span>buy nft</span>
+  </li>
+  <li class="menu-item">
+    <span>get airdrop</span>
+  </li>
+  <li class="menu-item">
+    <span>level up</span>
   </li>
   <li style="padding: 0; margin: 0.35em 0; border-bottom: 1px solid #e6e6e6"></li>
   <li class="menu-item">
@@ -97,8 +57,12 @@ const HTML = `
   <li class="menu-item">
     <span>jump onto...</span>
   </li>
-  <li class="menu-item menu-disabled">
+  <li class="menu-item">
     <span>fall</span>
+  </li>
+  <li style="padding: 0; margin: 0.35em 0; border-bottom: 1px solid #e6e6e6"></li>
+  <li class="menu-item">
+    <span>hug</span>
   </li>
 </ul>
 <div class="screen" style="
@@ -112,20 +76,25 @@ const HTML = `
     "></div>
 `;
 
-let images = [];
-let characters = [];
+const MENU_HEIGHT = 426;
 
 //---------------------------------------------------------------------------------------------------------------------------
 
+let config = {};
+let images = {};
+let characters = [];
+
 class Character {
   constructor(id) {
+    this.config = config;
     this.id = id;
     this.images = images;
     this.screen = null;
     this.menu = null;
     this.init();
     this.handleMenu();
-    this.position = 2;
+    this.position =
+      this.config.positions.stand.id + this.config.positions.stand.default;
     this.x = randInt(10, 90);
     this.y = 0;
     this.onAir = false;
@@ -134,13 +103,6 @@ class Character {
     this.task = null;
     this.draw();
     this.detectScroll();
-
-    chrome.runtime.onMessage.addListener((msg) => {
-      if (msg?.info === "newTxn") {
-        this.rare(10);
-        console.log(msg?.data);
-      }
-    });
   }
 
   //  initializes everything (creates root div where the character will move)
@@ -153,85 +115,55 @@ class Character {
   }
 
   handleMenuOnClickActions() {
-    const clone = this.menu.children[0];
-    clone.onclick = () => this.clone();
+    const disappear = this.menu.children[0];
+    disappear.onclick = () => this.dismiss();
 
-    const dismiss = this.menu.children[1];
-    dismiss.onclick = () => this.dismiss();
-
-    const sit = this.menu.children[3];
-    sit.onclick = () => this.sit();
-
-    const rare = this.menu.children[4];
-    rare.onclick = () => this.rare();
-
-    const watch = this.menu.children[5];
-    watch.onclick = () => this.watch();
-
-    const jiggle = this.menu.children[6];
-    jiggle.onclick = () => this.jiggle();
-
-    const ceilingLeftSlow =
-      this.menu.children[8].children[1].children[0].children[1].children[0];
-    ceilingLeftSlow.onclick = () => this.ceiling("left", "slow");
-
-    const ceilingLeftFast =
-      this.menu.children[8].children[1].children[0].children[1].children[1];
-    ceilingLeftFast.onclick = () => this.ceiling("left", "fast");
-
-    const ceilingRightSlow =
-      this.menu.children[8].children[1].children[1].children[1].children[0];
-    ceilingRightSlow.onclick = () => this.ceiling("right", "slow");
-
-    const ceilingRightFast =
-      this.menu.children[8].children[1].children[1].children[1].children[1];
-    ceilingRightFast.onclick = () => this.ceiling("right", "fast");
-
-    const climbUpSlow =
-      this.menu.children[9].children[1].children[0].children[1].children[0];
-    climbUpSlow.onclick = () => this.climb("up", "slow");
-
-    const climbUpFast =
-      this.menu.children[9].children[1].children[0].children[1].children[1];
-    climbUpFast.onclick = () => this.climb("up", "fast");
-
-    const climbDownSlow =
-      this.menu.children[9].children[1].children[1].children[1].children[0];
-    climbDownSlow.onclick = () => this.climb("down", "slow");
-
-    const climbDownFast =
-      this.menu.children[9].children[1].children[1].children[1].children[1];
-    climbDownFast.onclick = () => this.climb("down", "fast");
+    const stand = this.menu.children[2];
+    stand.onclick = () => this.stand();
 
     const walkLeftSlow =
-      this.menu.children[10].children[1].children[0].children[1].children[0];
+      this.menu.children[3].children[1].children[0].children[1].children[0];
     walkLeftSlow.onclick = () => this.walk("left", "slow");
 
     const walkLeftRun =
-      this.menu.children[10].children[1].children[0].children[1].children[1];
+      this.menu.children[3].children[1].children[0].children[1].children[1];
     walkLeftRun.onclick = () => this.walk("left", "run");
 
     const walkLeftDash =
-      this.menu.children[10].children[1].children[0].children[1].children[2];
+      this.menu.children[3].children[1].children[0].children[1].children[2];
     walkLeftDash.onclick = () => this.walk("left", "dash");
 
     const walkRightSlow =
-      this.menu.children[10].children[1].children[1].children[1].children[0];
+      this.menu.children[3].children[1].children[1].children[1].children[0];
     walkRightSlow.onclick = () => this.walk("right", "slow");
 
     const walkRightRun =
-      this.menu.children[10].children[1].children[1].children[1].children[1];
+      this.menu.children[3].children[1].children[1].children[1].children[1];
     walkRightRun.onclick = () => this.walk("right", "run");
 
     const walkRightDash =
-      this.menu.children[10].children[1].children[1].children[1].children[2];
+      this.menu.children[3].children[1].children[1].children[1].children[2];
     walkRightDash.onclick = () => this.walk("right", "dash");
 
-    const creepLeft = this.menu.children[11].children[1].children[0];
-    creepLeft.onclick = () => this.creep("left");
+    const sofaMode = this.menu.children[4];
+    sofaMode.onclick = () => this.sofaMode();
 
-    const creepRight = this.menu.children[11].children[1].children[1];
-    creepRight.onclick = () => this.creep("right");
+    const checkPrice = this.menu.children[5];
+
+    const birthOfNFT = this.menu.children[7];
+    birthOfNFT.onclick = () => this.birthOfNFT();
+
+    const sendTransaction = this.menu.children[8];
+    sendTransaction.onclick = () => this.sendTransaction();
+
+    const buyNFT = this.menu.children[9];
+    buyNFT.onclick = () => this.buyNFT();
+
+    const getAirdrop = this.menu.children[10];
+    getAirdrop.onclick = () => this.getAirdrop();
+
+    const levelUp = this.menu.children[11];
+    levelUp.onclick = () => this.levelUp();
 
     const stealObject = this.menu.children[13];
     stealObject.onclick = () => this.stealObject();
@@ -241,6 +173,8 @@ class Character {
 
     const fall = this.menu.children[15];
     fall.onclick = () => this.drop();
+
+    const hug = this.menu.children[17];
   }
 
   //  handles submenu/menu (hides/displays submenu)
@@ -288,7 +222,6 @@ class Character {
         !e.target.attributes.src?.value.includes("data:image/png")
       ) {
         this.menu.style.display = "none";
-        if (this.task === "watch") this.watch();
         for (let activeSubMenu of activeSubMenus)
           activeSubMenu.children[1].style.display = "none";
         activeSubMenus = [];
@@ -300,7 +233,7 @@ class Character {
   detectScroll() {
     document.addEventListener("scroll", () => {
       let selectedDiv = this.getSelectedDiv();
-      if (!selectedDiv || (this.y === 100 && this.position === 1)) return;
+      if (!selectedDiv || this.y === 100) return;
       const { top, left } = this.selectedDiv.getBoundingClientRect();
       this.character.style.top = `${
         top -
@@ -348,44 +281,40 @@ class Character {
         else this.menu.style.left = `${x - 200}px`;
         if (y + 465 < document.documentElement.clientHeight)
           this.menu.style.top = `${y}px`;
-        else this.menu.style.top = `${y - 387}px`;
+        else this.menu.style.top = `${y - MENU_HEIGHT}px`;
         this.handleMenuOnClickActions();
-        if (this.isWalkable("sit", true)) {
-          this.menu.children[0].classList.remove("menu-disabled");
+        if (this.isWalkable()) {
+          this.menu.children[2].classList.remove("menu-disabled");
           this.menu.children[3].classList.remove("menu-disabled");
           this.menu.children[4].classList.remove("menu-disabled");
           this.menu.children[5].classList.remove("menu-disabled");
-          this.menu.children[6].classList.remove("menu-disabled");
-        } else {
-          this.menu.children[0].classList.add("menu-disabled");
-          this.menu.children[3].classList.add("menu-disabled");
-          this.menu.children[4].classList.add("menu-disabled");
-          this.menu.children[5].classList.add("menu-disabled");
-          this.menu.children[6].classList.add("menu-disabled");
-        }
-        if (this.isWalkable("menu", true)) {
-          if (this.y !== 100)
-            this.menu.children[8].classList.remove("menu-disabled");
-          else this.menu.children[8].classList.add("menu-disabled");
+          this.menu.children[7].classList.remove("menu-disabled");
+          this.menu.children[8].classList.remove("menu-disabled");
           this.menu.children[9].classList.remove("menu-disabled");
           this.menu.children[10].classList.remove("menu-disabled");
           this.menu.children[11].classList.remove("menu-disabled");
+          this.menu.children[13].classList.remove("menu-disabled");
+          this.menu.children[14].classList.remove("menu-disabled");
+          this.menu.children[17].classList.remove("menu-disabled");
         } else {
+          this.menu.children[2].classList.add("menu-disabled");
+          this.menu.children[3].classList.add("menu-disabled");
+          this.menu.children[4].classList.add("menu-disabled");
+          this.menu.children[5].classList.add("menu-disabled");
+          this.menu.children[7].classList.add("menu-disabled");
+          this.menu.children[8].classList.add("menu-disabled");
           this.menu.children[9].classList.add("menu-disabled");
           this.menu.children[10].classList.add("menu-disabled");
           this.menu.children[11].classList.add("menu-disabled");
+          this.menu.children[13].classList.add("menu-disabled");
+          this.menu.children[14].classList.add("menu-disabled");
+          this.menu.children[17].classList.add("menu-disabled");
         }
         if (this.y !== 100)
           this.menu.children[15].classList.remove("menu-disabled");
         else this.menu.children[15].classList.add("menu-disabled");
-        if (this.isClimbable())
-          this.menu.children[9].classList.remove("menu-disabled");
-        else this.menu.children[9].classList.add("menu-disabled");
         this.menu.style.display = "block";
-      } else {
-        this.menu.style.display = "none";
-        if (this.task === "watch") this.watch();
-      }
+      } else this.menu.style.display = "none";
       if (selectedDiv) this.jumpOnto();
     };
 
@@ -394,10 +323,23 @@ class Character {
       const taskId = makeId();
       this.task = taskId;
       if (this.task !== taskId) return;
-      if (pos1 === 0 && pos2 === 0) this.position = 1;
-      else if (pos1 > 0 && pos3 - event.clientX > 0) this.position = 8;
-      else if (pos1 > -4 && pos3 - event.clientX > -4) this.position = 7;
-      else if (pos1 < -4 && pos3 - event.clientX < -4) this.position = 9;
+      if (pos1 === 0 && pos2 === 0)
+        this.position =
+          this.config.positions.drag.id + this.config.positions.drag.onAir;
+      else if (pos1 > 0 && pos3 - event.clientX > 0) {
+        if (pos1 < 4 && pos3 - event.clientX < 4)
+          this.position =
+            this.config.positions.drag.id +
+            this.config.positions.drag.softRight;
+        else
+          this.position =
+            this.config.positions.drag.id + this.config.positions.drag.right;
+      } else if (pos1 > -4 && pos3 - event.clientX > -4)
+        this.position =
+          this.config.positions.drag.id + this.config.positions.drag.softLeft;
+      else if (pos1 < -4 && pos3 - event.clientX < -4)
+        this.position =
+          this.config.positions.drag.id + this.config.positions.drag.left;
       this.character.style.transform = "unset";
       this.onAir = true;
       this.draw();
@@ -406,14 +348,14 @@ class Character {
       pos3 = event.clientX;
       pos4 = event.clientY;
       this.character.style.top = `${this.character.offsetTop - pos2}px`;
-      if (this.character.offsetLeft - pos1 < -96)
-        this.character.style.left = "-96.48px";
+      if (this.character.offsetLeft - pos1 < -this.config.dimension / 2)
+        this.character.style.left = `-${this.config.dimension / 2 + 0.48}px`;
       else if (
         this.character.offsetLeft - pos1 >
-        document.documentElement.clientWidth - 96
+        document.documentElement.clientWidth - this.config.dimension / 2
       )
         this.character.style.left = `${
-          document.documentElement.clientWidth - 96
+          document.documentElement.clientWidth - this.config.dimension / 2
         }px`;
       else this.character.style.left = `${this.character.offsetLeft - pos1}px`;
       this.adjustXY();
@@ -443,27 +385,14 @@ class Character {
       this.character = img;
       this.makeElementDragable();
     }
-    if (this.position === 30 || this.position === 31)
-      this.character.style.top = `${
-        (this.y / 100) * document.documentElement.clientHeight - 160
-      }px`;
-    else if (
-      document.documentElement.clientHeight -
-        parseInt(this.character.style.top) ===
-      160
-    ) {
-      this.y = 100;
-      this.character.style.top = `${
-        (this.y / 100) * document.documentElement.clientHeight - 192
-      }px`;
-    } else
-      this.character.style.top = `${
-        (this.y / 100) * document.documentElement.clientHeight - 192
-      }px`;
+    this.character.style.top = `${
+      (this.y / 100) * document.documentElement.clientHeight -
+      this.config.dimension
+    }px`;
     this.character.style.left = `${
       (this.x / 100) * document.documentElement.clientWidth
     }px`;
-    this.character.src = this.images[this.position - 1];
+    this.character.src = this.images[this.position];
   }
 
   // drop action
@@ -472,8 +401,10 @@ class Character {
     this.task = taskId;
     if (this.task !== taskId) return;
     let gravity = this.y > 30 ? 30 : this.y;
-    this.position = 4;
+    this.position =
+      this.config.positions.fall.id + this.config.positions.fall.default;
     while (this.y < 100) {
+      if (this.task !== taskId) return;
       if (this.menu.style.display === "block") {
         await sleep(100);
         continue;
@@ -487,186 +418,33 @@ class Character {
     }
     await sleep(100);
     this.y = 100;
-    this.position = 18;
-    this.draw();
-    await sleep(300);
-    this.position = 19;
-    this.draw();
-    await sleep(300);
-    this.position = 1;
-    this.draw();
-  }
-
-  // clone action
-  async clone() {
-    const taskId = makeId();
-    this.task = taskId;
-    if (this.task !== taskId) return;
-    if (getNumberOfCharacters() >= 3) {
-      alert("Clone failed! Maximum of 3 shimejis per character.");
-    } else if (this.y === 100) {
-      await this.clone_1();
-      const id = makeId();
-      const newCharacter = new Character(id);
-      characters.push(newCharacter);
-      newCharacter.x = this.x + 10;
-      newCharacter.y = 100;
-      newCharacter.sit();
-    } else {
-      await this.clone_2();
-      const id = makeId();
-      const newCharacter = new Character(id);
-      characters.push(newCharacter);
-      newCharacter.x = this.x - 10;
-      newCharacter.y = this.y;
-      newCharacter.drop();
-    }
-  }
-
-  // clone type 1: performed when the character is on ground
-  async clone_1() {
-    const positions = [42, 43, 44, 45, 46];
-    for (let position of positions) {
-      this.position = position;
+    for (let frame = 2; frame <= this.config.positions.fall.frames; frame++) {
+      const frameId =
+        frame.toString().length === 1
+          ? `0${frame.toString()}`
+          : frame.toString();
+      this.position = this.config.positions.fall.id + frameId;
       this.draw();
-      await sleep(250);
+      await sleep(75);
     }
-    await sleep(250);
-    this.position = 1;
-    this.draw();
-  }
-
-  // clone type 2: performed when the character is on air
-  async clone_2() {
-    const positions = [38, 39, 40, 41];
-    for (let position of positions) {
-      this.position = position;
-      this.draw();
-      await sleep(500);
-    }
-    await sleep(250);
-    this.position = 1;
+    this.position =
+      this.config.positions.stand.id + this.config.positions.stand.default;
     this.draw();
   }
 
   // helps to detect if the character is on ground or on top of a div or on air
-  isWalkable(task = null, menu = false) {
+  isWalkable() {
     if (this.y === 100) return true;
-    if (
-      task !== "ceiling" &&
-      task !== "sit" &&
-      (parseInt(this.character.style.left) === -96 ||
-        parseInt(this.character.style.left) ===
-          document.documentElement.clientWidth - 96)
-    ) {
-      if (task !== "menu") {
-        this.y = 100;
-        this.draw();
-      }
-      return true;
-    }
     let selectedDiv = this.getSelectedDiv();
     if (
       selectedDiv &&
-      (parseInt(this.character.style.top) === parseInt(selectedDiv.style.top) ||
-        parseInt(this.character.style.top) ===
-          parseInt(selectedDiv.style.top) +
-            parseInt(selectedDiv.style.minHeight))
-    ) {
-      if (
-        task !== "ceiling" &&
-        task !== "sit" &&
-        task !== "menu" &&
-        parseInt(selectedDiv.style.top) === parseInt(this.character.style.top)
-      ) {
-        this.character.style.top = `${parseInt(selectedDiv.style.top) - 192}px`;
-        this.adjustXY();
-      } else if (task !== "ceiling" && task !== "sit" && task !== "menu") {
-        this.character.style.top = `${
-          parseInt(selectedDiv.style.top) +
-          parseInt(selectedDiv.style.minHeight) -
-          192
-        }px`;
-        this.adjustXY();
-      }
-      return true;
-    }
-    if (
-      selectedDiv &&
-      (parseInt(selectedDiv.style.top) - 192 ===
+      (parseInt(selectedDiv.style.top) - this.config.dimension ===
         parseInt(this.character.style.top) ||
         parseInt(selectedDiv.style.top) +
           parseInt(selectedDiv.style.minHeight) -
-          192 ===
+          this.config.dimension ===
           parseInt(this.character.style.top))
     ) {
-      if (
-        task === "ceiling" &&
-        parseInt(selectedDiv.style.top) - 192 ===
-          parseInt(this.character.style.top)
-      )
-        this.character.style.top = selectedDiv.style.top;
-      else if (
-        task === "ceiling" &&
-        parseInt(selectedDiv.style.top) +
-          parseInt(selectedDiv.style.minHeight) -
-          192 ===
-          parseInt(this.character.style.top)
-      )
-        this.character.style.top = `${
-          parseInt(selectedDiv.style.top) +
-          parseInt(selectedDiv.style.minHeight)
-        }px`;
-      return true;
-    }
-    if (
-      selectedDiv &&
-      (parseInt(selectedDiv.style.top) - 160 ===
-        parseInt(this.character.style.top) ||
-        parseInt(selectedDiv.style.top) +
-          parseInt(selectedDiv.style.minHeight) -
-          160 ===
-          parseInt(this.character.style.top))
-    ) {
-      if (
-        task !== "jiggle" &&
-        !menu &&
-        parseInt(selectedDiv.style.top) - 160 ===
-          parseInt(this.character.style.top)
-      )
-        this.character.style.top = `${parseInt(selectedDiv.style.top) - 192}px`;
-      else if (task !== "jiggle" && !menu)
-        this.character.style.top = `${
-          parseInt(selectedDiv.style.top) +
-          parseInt(selectedDiv.style.minHeight) -
-          192
-        }px`;
-      return true;
-    }
-    if (
-      selectedDiv &&
-      parseInt(selectedDiv.style.top) - 96 ===
-        parseInt(this.character.style.top)
-    ) {
-      if (task === "sit") return false;
-      else if (task !== "menu")
-        this.character.style.top = `${parseInt(selectedDiv.style.top) - 192}px`;
-      return true;
-    }
-    if (
-      selectedDiv &&
-      parseInt(selectedDiv.style.top) +
-        parseInt(selectedDiv.style.minHeight) -
-        165 ===
-        parseInt(this.character.style.top)
-    ) {
-      if (task === "sit") return false;
-      else if (task !== "menu")
-        this.character.style.top = `${
-          parseInt(selectedDiv.style.top) +
-          parseInt(selectedDiv.style.minHeight) -
-          192
-        }px`;
       return true;
     }
     return false;
@@ -680,12 +458,18 @@ class Character {
     if (direction === "right")
       this.character.style.transform = "rotateY(180deg)";
     else this.character.style.transform = "unset";
-    const positions = [1, 2, 1, 3];
+    const positions = [
+      this.config.positions.walk.default,
+      this.config.positions.walk.left,
+      this.config.positions.walk.default,
+      this.config.positions.walk.right,
+    ];
     let step = 0;
     let walkingSpeed = 8;
     let sleepTime = 21;
-    let leftLimit = -96;
-    let rightLimit = document.documentElement.clientWidth - 94.5;
+    let leftLimit = -this.config.dimension / 2;
+    let rightLimit =
+      document.documentElement.clientWidth - this.config.dimension / 2 + 0.33;
     if (speed === "run") {
       walkingSpeed = 10;
       sleepTime = 8;
@@ -696,13 +480,18 @@ class Character {
       if (this.y !== 100) await this.drop();
       walkingSpeed = 4;
       sleepTime = 0;
-      leftLimit = -200;
+      leftLimit = -this.config.dimension * 1.1;
     }
     if (!this.isWalkable()) return;
     if (this.y !== 100) {
       let selectedDiv = this.getSelectedDiv();
-      leftLimit = parseInt(selectedDiv.style.left) - 81;
-      rightLimit = leftLimit + parseInt(selectedDiv.style.minWidth) - 30;
+      leftLimit =
+        parseInt(selectedDiv.style.left) -
+        parseInt(this.config.dimension / 2.37);
+      rightLimit =
+        leftLimit +
+        parseInt(selectedDiv.style.minWidth) -
+        parseInt(this.config.dimension / 6.4);
       if (leftLimit > parseInt(this.character.style.left))
         this.character.style.left = `${leftLimit}px`;
       else if (rightLimit < parseInt(this.character.style.left))
@@ -718,7 +507,7 @@ class Character {
         await sleep(100);
         continue;
       }
-      this.position = positions[step % 4];
+      this.position = this.config.positions.walk.id + positions[step % 4];
       step++;
       for (
         let i = 0;
@@ -750,380 +539,22 @@ class Character {
     }
     if (speed !== "faster" && this.task !== taskId) return;
     if (!this.isWalkable()) return;
-    this.position = 1;
+    this.position =
+      this.config.positions.stand.id + this.config.positions.stand.default;
     if (this.y === 100)
       this.character.style.left =
         direction === "left"
-          ? "-96.48px"
-          : `${document.documentElement.clientWidth - 95.67}px`;
+          ? `-${this.config.dimension / 2 + 0.48}px`
+          : `${
+              document.documentElement.clientWidth -
+              this.config.dimension / 2 +
+              0.33
+            }px`;
     else
       this.character.style.left =
         direction === "left" ? `${leftLimit}px` : `${rightLimit}px`;
     this.adjustXY();
     this.draw();
-  }
-
-  // ceiling action
-  async ceiling(direction, speed) {
-    const taskId = makeId();
-    this.task = taskId;
-    if (this.task !== taskId) return;
-    if (direction === "right")
-      this.character.style.transform = "rotateY(180deg)";
-    else this.character.style.transform = "unset";
-    const positions = [23, 24, 23, 25];
-    let step = 0;
-    let walkingSpeed = 8;
-    let sleepTime = 21;
-    if (speed === "fast") {
-      walkingSpeed = 10;
-      sleepTime = 8;
-    }
-    if (!this.isWalkable("ceiling")) return;
-    let selectedDiv = this.getSelectedDiv();
-    let leftLimit = parseInt(selectedDiv.style.left) - 81;
-    let rightLimit = leftLimit + parseInt(selectedDiv.style.minWidth) - 30;
-    if (leftLimit > parseInt(this.character.style.left))
-      this.character.style.left = `${leftLimit}px`;
-    else if (rightLimit < parseInt(this.character.style.left))
-      this.character.style.left = `${rightLimit}px`;
-    while (
-      this.isWalkable("ceiling") &&
-      this.task === taskId &&
-      parseInt(this.character.style.left) >= leftLimit &&
-      parseInt(this.character.style.left) <= rightLimit
-    ) {
-      if (this.menu.style.display === "block") {
-        await sleep(100);
-        continue;
-      }
-      this.position = positions[step % 4];
-      step++;
-      for (
-        let i = 0;
-        i < walkingSpeed &&
-        this.task === taskId &&
-        this.isWalkable("ceiling") &&
-        parseInt(this.character.style.left) >= leftLimit &&
-        parseInt(this.character.style.left) <= rightLimit;
-        i++
-      ) {
-        if (this.menu.style.display === "block") {
-          await sleep(100);
-          continue;
-        }
-        this.character.style.left =
-          direction === "left"
-            ? `${parseInt(this.character.style.left) - 1}px`
-            : `${parseInt(this.character.style.left) + 1}px`;
-        this.adjustXY();
-        this.draw();
-        await sleep(sleepTime);
-      }
-    }
-    if (this.task !== taskId) return;
-    if (!this.isWalkable("ceiling")) return;
-    this.position = 23;
-    if (this.y === 100)
-      this.character.style.left =
-        direction === "left"
-          ? "-96.48px"
-          : `${document.documentElement.clientWidth - 95.67}px`;
-    else
-      this.character.style.left =
-        direction === "left" ? `${leftLimit}px` : `${rightLimit}px`;
-    this.adjustXY();
-    this.draw();
-  }
-
-  // creep action
-  async creep(direction) {
-    const taskId = makeId();
-    this.task = taskId;
-    if (this.task !== taskId) return;
-    if (direction === "right")
-      this.character.style.transform = "rotateY(180deg)";
-    else this.character.style.transform = "unset";
-    if (!this.isWalkable()) return;
-    const positions = [20, 21];
-    let step = 0;
-    let leftLimit = -95;
-    let rightLimit = document.documentElement.clientWidth - 100;
-    if (this.y !== 100) {
-      let selectedDiv = this.getSelectedDiv();
-      leftLimit = parseInt(selectedDiv.style.left) - 81;
-      rightLimit = leftLimit + parseInt(selectedDiv.style.minWidth) - 30;
-    }
-    if (parseInt(this.character.style.left) < leftLimit) {
-      this.character.style.left = `${leftLimit}px`;
-      this.adjustXY();
-    } else if (parseInt(this.character.style.left) > rightLimit) {
-      this.character.style.left = `${rightLimit}px`;
-      this.adjustXY();
-    }
-    while (
-      this.isWalkable() &&
-      this.task === taskId &&
-      parseInt(this.character.style.left) >= leftLimit &&
-      parseInt(this.character.style.left) <= rightLimit
-    ) {
-      if (this.menu.style.display === "block") {
-        await sleep(100);
-        continue;
-      }
-      this.position = positions[step % 2];
-      if (step % 2) {
-        for (
-          let i = 0;
-          i < 28 &&
-          this.isWalkable() &&
-          this.task === taskId &&
-          parseInt(this.character.style.left) >= leftLimit &&
-          parseInt(this.character.style.left) <= rightLimit;
-          i++
-        ) {
-          if (this.menu.style.display === "block") {
-            await sleep(100);
-            continue;
-          }
-          this.character.style.left =
-            direction === "left"
-              ? `${parseInt(this.character.style.left) - 1}px`
-              : `${parseInt(this.character.style.left) + 1}px`;
-          this.adjustXY();
-          this.draw();
-          await sleep(25);
-        }
-      }
-      this.draw();
-      await sleep(1800);
-      step++;
-    }
-    if (this.task !== taskId) return;
-    if (!this.isWalkable()) return;
-    this.position = 1;
-    if (this.y === 100)
-      this.character.style.left =
-        direction === "left"
-          ? "-96.48px"
-          : `${document.documentElement.clientWidth - 95.67}px`;
-    else
-      this.character.style.left =
-        direction === "left" ? `${leftLimit}px` : `${rightLimit}px`;
-    this.adjustXY();
-    this.draw();
-  }
-
-  // helps to detect if the character is on the edge (of a div or screen) or not
-  isClimbable(task = null) {
-    if (
-      parseInt(this.character.style.left) === -96 ||
-      parseInt(this.character.style.left) ===
-        document.documentElement.clientWidth - 96
-    )
-      return true;
-    let selectedDiv = this.getSelectedDiv();
-    if (
-      selectedDiv &&
-      (parseInt(selectedDiv.style.left) - 81 ===
-        parseInt(this.character.style.left) ||
-        parseInt(selectedDiv.style.left) +
-          parseInt(selectedDiv.style.minWidth) -
-          111 ===
-          parseInt(this.character.style.left))
-    ) {
-      if (task === "climb") {
-        if (this.character.style.transform === "rotateY(180deg)") {
-          this.character.style.transform = "unset";
-          this.character.style.left = `${
-            parseInt(selectedDiv.style.left) +
-            parseInt(selectedDiv.style.minWidth) -
-            65
-          }px`;
-        } else {
-          this.character.style.transform = "rotateY(180deg)";
-          this.character.style.left = `${
-            parseInt(selectedDiv.style.left) - 125
-          }px`;
-        }
-      }
-      return true;
-    }
-    if (
-      selectedDiv &&
-      (parseInt(selectedDiv.style.left) ===
-        parseInt(this.character.style.left) + 125 ||
-        parseInt(selectedDiv.style.left) +
-          parseInt(selectedDiv.style.minWidth) ===
-          parseInt(this.character.style.left) + 65)
-    )
-      return true;
-    return false;
-  }
-
-  // climb action
-  async climb(direction, speed) {
-    const taskId = makeId();
-    this.task = taskId;
-    if (this.task !== taskId) return;
-    const positions = [13, 12, 14, 12];
-    let step = 0;
-    let climbingSpeed = 8;
-    let sleepTime = [25, 1000];
-    let upLimit = -96;
-    let downLimit = document.documentElement.clientHeight - 95.67;
-    let selectedDiv = this.getSelectedDiv();
-    if (
-      selectedDiv &&
-      this.y !== 100 &&
-      (parseInt(this.character.style.left) !== -96 ||
-        parseInt(this.character.style.left) !==
-          document.documentElement.clientWidth - 96)
-    ) {
-      upLimit = parseInt(selectedDiv.style.top) - 96;
-      downLimit = upLimit + parseInt(selectedDiv.style.minHeight) - 69;
-      if (parseInt(this.character.style.top) < upLimit)
-        this.character.style.top = `${upLimit}px`;
-      else if (parseInt(this.character.style.top) > downLimit)
-        this.character.style.top = `${downLimit}px`;
-    }
-    if (speed === "fast") {
-      climbingSpeed = 18;
-      sleepTime = [4, 200];
-    }
-    if (this.y === 100) {
-      this.character.style.top = `${parseInt(this.character.style.top) + 90}px`;
-      this.position = 13;
-      this.adjustXY();
-      this.draw();
-    }
-    if (!this.isClimbable("climb")) return;
-    if (
-      parseInt(this.character.style.left) ===
-      document.documentElement.clientWidth - 96
-    )
-      this.character.style.transform = "rotateY(180deg)";
-    while (
-      this.isClimbable() &&
-      this.task === taskId &&
-      parseInt(this.character.style.top) >= upLimit &&
-      parseInt(this.character.style.top) <= downLimit
-    ) {
-      if (this.menu.style.display === "block") {
-        await sleep(100);
-        continue;
-      }
-      this.position = positions[step % 4];
-      step++;
-      for (
-        let i = 0;
-        i < climbingSpeed &&
-        this.task === taskId &&
-        this.isClimbable() &&
-        parseInt(this.character.style.top) >= upLimit &&
-        parseInt(this.character.style.top) <= downLimit;
-        i++
-      ) {
-        if (this.menu.style.display === "block") {
-          await sleep(100);
-          continue;
-        }
-        this.character.style.top =
-          direction === "up"
-            ? `${parseInt(this.character.style.top) - 1}px`
-            : `${parseInt(this.character.style.top) + 1}px`;
-        this.adjustXY();
-        await sleep(sleepTime[0]);
-      }
-      this.adjustXY();
-      this.draw();
-      await sleep(this.position === 12 ? 50 : sleepTime[1]);
-    }
-    if (this.task !== taskId) return;
-    if (!this.isClimbable()) return;
-    this.position = 13;
-    if (this.y === 100)
-      this.character.style.top =
-        direction === "up"
-          ? "-96.48px"
-          : `${document.documentElement.clientHeight - 95.67}px`;
-    else
-      this.character.style.top =
-        direction === "up" ? `${upLimit}px` : `${downLimit}px`;
-    this.adjustXY();
-    this.draw();
-  }
-
-  // sit action
-  sit() {
-    const taskId = makeId();
-    this.task = taskId;
-    if (this.task !== taskId) return;
-    this.character.style.transform = "unset";
-    if (!this.isWalkable() || !this.isWalkable("sit")) return;
-    this.position = 11;
-    this.draw();
-  }
-
-  // watch action
-  watch() {
-    const taskId = "watch";
-    this.task = taskId;
-    if (this.task !== taskId) return;
-    this.character.style.transform = "unset";
-    if (!this.isWalkable() || !this.isWalkable("sit")) return;
-    this.position = 26;
-    this.draw();
-    const trackCursor = ({ x }) => {
-      if (this.menu.style.display === "block") return;
-      if (this.task !== taskId) document.onmousemove = null;
-      else if ((this.x * document.documentElement.clientWidth) / 100 + 96 < x)
-        this.character.style.transform = "rotateY(180deg)";
-      else this.character.style.transform = "unset";
-    };
-    document.onmousemove = trackCursor;
-  }
-
-  // rare action
-  async rare(rounds = Number.MAX_VALUE) {
-    const taskId = makeId();
-    this.task = taskId;
-    if (this.task !== taskId) return;
-    this.character.style.transform = "unset";
-    if (!this.isWalkable() || !this.isWalkable("sit")) return;
-    const positions = [26, 15, 27, 16, 28, 17, 29];
-    let step = 0;
-    while (this.isWalkable("sit") && this.task === taskId && step < rounds) {
-      if (this.menu.style.display === "block") {
-        await sleep(100);
-        continue;
-      }
-      this.position = positions[step % 7];
-      this.draw();
-      step++;
-      await sleep(300);
-      if (rounds === step + 1) this.sit();
-    }
-  }
-
-  // jiggle action
-  async jiggle() {
-    const taskId = makeId();
-    this.task = taskId;
-    if (this.task !== taskId) return;
-    this.character.style.transform = "unset";
-    const positions = [30, 31];
-    let step = 0;
-    while (this.isWalkable("jiggle") && this.task === taskId) {
-      if (this.menu.style.display === "block") {
-        await sleep(100);
-        continue;
-      }
-      this.position = positions[step % 2];
-      this.draw();
-      step++;
-      await sleep(800);
-    }
   }
 
   // dismiss action
@@ -1133,6 +564,130 @@ class Character {
     if (this.task !== taskId) return;
     await this.walk("left", "faster");
     if (this.x < 0) this.character.parentElement.parentElement.remove();
+  }
+
+  // stand action
+  async stand() {
+    const taskId = makeId();
+    this.task = taskId;
+    if (this.task !== taskId) return;
+    if (!this.isWalkable()) return;
+    this.position =
+      this.config.positions.stand.id + this.config.positions.stand.default;
+    this.draw();
+  }
+
+  // sofa mode action
+  async sofaMode() {
+    for (
+      let frame = 1;
+      frame <= this.config.positions.sofaMode.frames;
+      frame++
+    ) {
+      const frameId =
+        frame.toString().length === 1
+          ? `0${frame.toString()}`
+          : frame.toString();
+      this.position = this.config.positions.sofaMode.id + frameId;
+      this.draw();
+      await sleep(125);
+    }
+  }
+
+  // birth of nft action
+  async birthOfNFT() {
+    for (
+      let frame = 1;
+      frame <= this.config.positions.birthOfNFT.frames;
+      frame++
+    ) {
+      const frameId =
+        frame.toString().length === 1
+          ? `0${frame.toString()}`
+          : frame.toString();
+      this.position = this.config.positions.birthOfNFT.id + frameId;
+      this.draw();
+      await sleep(125);
+    }
+    this.position =
+      this.config.positions.stand.id + this.config.positions.stand.default;
+    this.draw();
+  }
+
+  // send transaction action
+  async sendTransaction() {
+    for (
+      let frame = 1;
+      frame <= this.config.positions.sendTransaction.frames;
+      frame++
+    ) {
+      const frameId =
+        frame.toString().length === 1
+          ? `0${frame.toString()}`
+          : frame.toString();
+      this.position = this.config.positions.sendTransaction.id + frameId;
+      this.draw();
+      await sleep(125);
+    }
+    this.position =
+      this.config.positions.stand.id + this.config.positions.stand.default;
+    this.draw();
+  }
+
+  // buy nft action
+  async buyNFT() {
+    for (let frame = 1; frame <= this.config.positions.buyNFT.frames; frame++) {
+      const frameId =
+        frame.toString().length === 1
+          ? `0${frame.toString()}`
+          : frame.toString();
+      this.position = this.config.positions.buyNFT.id + frameId;
+      this.draw();
+      await sleep(125);
+    }
+    this.position =
+      this.config.positions.stand.id + this.config.positions.stand.default;
+    this.draw();
+  }
+
+  // get air drop action
+  async getAirdrop() {
+    for (
+      let frame = 1;
+      frame <= this.config.positions.getAirdrop.frames;
+      frame++
+    ) {
+      const frameId =
+        frame.toString().length === 1
+          ? `0${frame.toString()}`
+          : frame.toString();
+      this.position = this.config.positions.getAirdrop.id + frameId;
+      this.draw();
+      await sleep(125);
+    }
+    this.position =
+      this.config.positions.stand.id + this.config.positions.stand.default;
+    this.draw();
+  }
+
+  // level up action
+  async levelUp() {
+    for (
+      let frame = 1;
+      frame <= this.config.positions.levelUp.frames;
+      frame++
+    ) {
+      const frameId =
+        frame.toString().length === 1
+          ? `0${frame.toString()}`
+          : frame.toString();
+      this.position = this.config.positions.levelUp.id + frameId;
+      this.draw();
+      await sleep(125);
+    }
+    this.position =
+      this.config.positions.stand.id + this.config.positions.stand.default;
+    this.draw();
   }
 
   // jump on to action
@@ -1153,7 +708,9 @@ class Character {
           return;
         document.onmousemove = null;
         document.onclick = null;
-        this.position = 22;
+        this.position =
+          this.config.positions.jumpOnto.id +
+          this.config.positions.jumpOnto.default;
         this.draw();
         const selectedDiv = this.getSelectedDiv();
         if (steal) {
@@ -1162,7 +719,7 @@ class Character {
             (parseInt(selectedDiv.style.top) +
               parseInt(selectedDiv.style.minHeight) -
               parseInt(this.character.style.top) -
-              32) /
+              parseInt(this.config.dimension / 6)) /
             80;
           let leftMovement;
           if (
@@ -1179,14 +736,13 @@ class Character {
             leftMovement =
               (parseInt(selectedDiv.style.left) -
                 parseInt(this.character.style.left) -
-                96) /
+                this.config.dimension / 2) /
               80;
           else
             leftMovement =
               (parseInt(selectedDiv.style.left) +
                 parseInt(selectedDiv.style.minWidth) -
-                parseInt(this.character.style.left) -
-                0) /
+                parseInt(this.character.style.left)) /
               80;
           if (leftMovement > 0)
             this.character.style.transform = "rotateY(180deg)";
@@ -1206,10 +762,13 @@ class Character {
           const upMovement =
             (parseInt(selectedDiv.style.top) -
               parseInt(this.character.style.top) -
-              126) /
+              this.config.dimension / 1.5) /
             80;
           const leftMovement =
-            (e.x - parseInt(this.character.style.left) - 30) / 80;
+            (e.x -
+              parseInt(this.character.style.left) -
+              this.config.dimension / 6.4) /
+            80;
           if (leftMovement > 0)
             this.character.style.transform = "rotateY(180deg)";
           else this.character.style.transform = "unset";
@@ -1223,20 +782,25 @@ class Character {
             await sleep(10);
           }
           this.character.style.top = `${
-            parseInt(selectedDiv.style.top) - 192
+            parseInt(selectedDiv.style.top) - this.config.dimension
           }px`;
-          this.character.style.left = `${e.x - 96}px`;
-          this.position = 1;
+          this.character.style.left = `${e.x - this.config.dimension / 2}px`;
+          this.position =
+            this.config.positions.stand.id +
+            this.config.positions.stand.default;
         } else if (selectedDiv.style.borderBottom.includes("solid red")) {
           selectedDiv.style.border = "none";
           const upMovement =
             (parseInt(selectedDiv.style.top) +
               parseInt(selectedDiv.style.minHeight) -
               parseInt(this.character.style.top) -
-              126) /
+              this.config.dimension / 1.5) /
             80;
           const leftMovement =
-            (e.x - parseInt(this.character.style.left) - 30) / 80;
+            (e.x -
+              parseInt(this.character.style.left) -
+              this.config.dimension / 6.4) /
+            80;
           if (leftMovement > 0)
             this.character.style.transform = "rotateY(180deg)";
           else this.character.style.transform = "unset";
@@ -1252,65 +816,12 @@ class Character {
           this.character.style.top = `${
             parseInt(selectedDiv.style.top) +
             parseInt(selectedDiv.style.minHeight) -
-            192
+            this.config.dimension
           }px`;
-          this.character.style.left = `${e.x - 96}px`;
-          this.position = 1;
-        } else if (selectedDiv.style.borderLeft.includes("solid red")) {
-          selectedDiv.style.border = "none";
-          const upMovement = (e.y - parseInt(this.character.style.top)) / 80;
-          const leftMovement =
-            (parseInt(selectedDiv.style.left) -
-              parseInt(this.character.style.left) -
-              96) /
-            80;
-          if (leftMovement > 0)
-            this.character.style.transform = "rotateY(180deg)";
-          else this.character.style.transform = "unset";
-          for (let i = 0; i < 80; i++) {
-            this.character.style.top = `${
-              parseInt(this.character.style.top) + upMovement
-            }px`;
-            this.character.style.left = `${
-              parseInt(this.character.style.left) + leftMovement
-            }px`;
-            await sleep(10);
-          }
-          this.character.style.transform = "rotateY(180deg)";
-          this.character.style.top = `${e.y - 96}px`;
-          this.character.style.left = `${
-            parseInt(selectedDiv.style.left) - 125
-          }px`;
-          this.position = 13;
-        } else if (selectedDiv.style.borderRight.includes("solid red")) {
-          selectedDiv.style.border = "none";
-          const upMovement = (e.y - parseInt(this.character.style.top)) / 80;
-          const leftMovement =
-            (parseInt(selectedDiv.style.left) +
-              parseInt(selectedDiv.style.minWidth) -
-              parseInt(this.character.style.left) -
-              30) /
-            80;
-          if (leftMovement > 0)
-            this.character.style.transform = "rotateY(180deg)";
-          else this.character.style.transform = "unset";
-          for (let i = 0; i < 80; i++) {
-            this.character.style.top = `${
-              parseInt(this.character.style.top) + upMovement
-            }px`;
-            this.character.style.left = `${
-              parseInt(this.character.style.left) + leftMovement
-            }px`;
-            await sleep(10);
-          }
-          this.character.style.transform = "unset";
-          this.character.style.top = `${e.y - 96}px`;
-          this.character.style.left = `${
-            parseInt(selectedDiv.style.left) +
-            parseInt(selectedDiv.style.minWidth) -
-            65
-          }px`;
-          this.position = 13;
+          this.character.style.left = `${e.x - this.config.dimension / 2}px`;
+          this.position =
+            this.config.positions.stand.id +
+            this.config.positions.stand.default;
         }
         this.adjustXY();
         this.draw();
@@ -1333,9 +844,6 @@ class Character {
         div.style.minHeight = `${height}px`;
         div.style.minWidth = `${width}px`;
         if (steal) div.style.border = "3px solid red";
-        else if (left + 10 > e.x) div.style.borderLeft = "3px solid red";
-        else if (left + width - 10 < e.x)
-          div.style.borderRight = "3px solid red";
         else if (top + height / 2 < e.y)
           div.style.borderBottom = "3px solid red";
         else div.style.borderTop = "3px solid red";
@@ -1361,7 +869,9 @@ class Character {
     const taskId = makeId();
     this.task = taskId;
     if (this.task !== taskId) return;
-    this.position = 34;
+    this.position =
+      this.config.positions.stealObject.id +
+      this.config.positions.stealObject.default;
     const selectedDiv = this.getSelectedDiv();
     if (
       Math.abs(
@@ -1374,19 +884,21 @@ class Character {
       )
     ) {
       this.character.style.transform = "rotateY(180deg)";
-      this.character.style.left = `${parseInt(selectedDiv.style.left) - 104}px`;
+      this.character.style.left = `${
+        parseInt(selectedDiv.style.left) - this.config.dimension / 1.85
+      }px`;
     } else {
       this.character.style.transform = "unset";
       this.character.style.left = `${
         parseInt(selectedDiv.style.left) +
         parseInt(selectedDiv.style.minWidth) -
-        87
+        this.config.dimension / 2.2
       }px`;
     }
     this.character.style.top = `${
       parseInt(selectedDiv.style.top) +
       parseInt(selectedDiv.style.minHeight) -
-      93
+      this.config.dimension / 2.06
     }px`;
     this.adjustXY();
     this.draw();
@@ -1401,12 +913,15 @@ class Character {
     clonedDiv.style.left = `${left}px`;
     let gravity = this.y > 30 ? 30 : this.y;
     while (this.y < 100) {
+      if (this.task !== taskId) return;
       if (this.menu.style.display === "block") {
         await sleep(100);
         continue;
       }
       clonedDiv.style.top = `${
-        (this.y / 100) * document.documentElement.clientHeight - height - 85
+        (this.y / 100) * document.documentElement.clientHeight -
+        height -
+        this.config.dimension / 2.26
       }px`;
       this.draw();
       this.y += 0.5;
@@ -1418,13 +933,19 @@ class Character {
     await sleep(100);
     this.y = 100;
     clonedDiv.style.top = `${
-      (this.y / 100) * document.documentElement.clientHeight - height - 85
+      (this.y / 100) * document.documentElement.clientHeight -
+      height -
+      this.config.dimension / 2.26
     }px`;
     this.draw();
-    const positions = [35, 36];
+    const positions = [
+      this.config.positions.stealObject.left,
+      this.config.positions.stealObject.right,
+    ];
     let step = 0;
-    let leftLimit = -96;
-    let rightLimit = document.documentElement.clientWidth - 94.5;
+    let leftLimit = -this.config.dimension / 2;
+    let rightLimit =
+      document.documentElement.clientWidth - this.config.dimension / 2 + 1.5;
     if (parseInt(this.character.style.left) > rightLimit) {
       this.character.style.left = `${rightLimit}px`;
       this.adjustXY();
@@ -1441,7 +962,8 @@ class Character {
         await sleep(100);
         continue;
       }
-      this.position = positions[step % 2];
+      this.position =
+        this.config.positions.stealObject.id + positions[step % 2];
       step++;
       for (
         let i = 0;
@@ -1471,11 +993,16 @@ class Character {
     }
     if (this.task !== taskId) return;
     if (!this.isWalkable()) return;
-    this.position = 1;
+    this.position =
+      this.config.positions.stand.id + this.config.positions.stand.default;
     this.character.style.left =
       this.character.style.transform === "unset"
-        ? "-96.48px"
-        : `${document.documentElement.clientWidth - 95.67}px`;
+        ? `-${this.config.dimension / 2 + 0.48}px`
+        : `${
+            document.documentElement.clientWidth -
+            this.config.dimension / 2 +
+            0.33
+          }px`;
     clonedDiv.remove();
     this.adjustXY();
     this.draw();
@@ -1495,7 +1022,7 @@ class Character {
       (parseInt(this.character.style.left) * 100) /
       document.documentElement.clientWidth;
     this.y =
-      ((parseInt(this.character.style.top) + 192) * 100) /
+      ((parseInt(this.character.style.top) + this.config.dimension) * 100) /
       document.documentElement.clientHeight;
   }
 }
@@ -1554,6 +1081,7 @@ const dismissAll = async (msg) => {
   }
   if (msg) {
     images = msg.images;
+    config = msg.config;
     if (msg.landAPetByDefault) main();
   }
 };
@@ -1581,7 +1109,9 @@ chrome.runtime.onMessage.addListener((msg) => {
       alert("Clone failed! Maximum of 3 shimejis per character.");
     else main();
   } else if (msg === "dismissAll") dismissAll();
-  else if (msg?.images?.length === 46 && msg.images[0] !== images[0]) {
-    dismissAll(msg);
+  else if (msg?.images) {
+    const keys = Object.keys(msg.images);
+    if (keys.length > 0 && msg.images[keys[0]] !== images[keys[0]])
+      dismissAll(msg);
   }
 });

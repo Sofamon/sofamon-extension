@@ -56,14 +56,24 @@ const getBase64FromUrl = async (url) => {
   });
 };
 
-const cacheAllImages = async (id = "noun") => {
+const cacheAllImages = async (id = "bunny") => {
+  let res = await fetch(`http://localhost:3000/images/${id}/config.json`);
+  res = await res.json();
+  images = [];
+  for (let position in res.positions) {
+    for (let i = 1; i <= res.positions[position].frames; i++) {
+      if (i < 10) images.push(`${res.positions[position].id}0${i}`);
+      else images.push(`${res.positions[position].id}${i}`);
+    }
+  }
   return new Promise((resolve) => {
-    const imageData = [];
-    for (let i = 1; i < 47; i++) {
-      getBase64FromUrl(`http://localhost:3000/images/${id}/shime${i}.png`).then(
-        (res) => {
-          imageData.push({ id: i, data: res });
-          if (imageData.length === 46) resolve(imageData);
+    const imageData = {};
+    for (let image of images) {
+      getBase64FromUrl(`http://localhost:3000/images/${id}/${image}.png`).then(
+        (base64Images) => {
+          imageData[image] = base64Images;
+          if (Object.keys(imageData).length === images.length)
+            resolve({ images: imageData, config: res });
         }
       );
     }
@@ -87,19 +97,11 @@ chrome.runtime.onMessageExternal.addListener(async (msg, sender) => {
     (characterInfo === undefined ||
       msg?.characterName !== JSON.parse(characterInfo).name)
   ) {
-    const res = await cacheAllImages(msg?.characterId);
-    let images = [];
-    for (let i = 1; i < 47; i++) {
-      for (let j of res) {
-        if (j.id === i) {
-          images.push(j.data);
-          break;
-        }
-      }
-    }
+    const { images, config } = await cacheAllImages(msg?.characterId);
     characterInfo = JSON.stringify({
       name: msg?.characterName,
       images,
+      config,
       level: 0,
     });
     chrome.storage.local.set({ characterInfo });
@@ -118,7 +120,8 @@ chrome.runtime.onMessage.addListener((msg) => {
           characterInfo === undefined
             ? {
                 name: undefined,
-                images: [],
+                images: {},
+                config: {},
                 level: NaN,
                 landAPetByDefault: false,
               }
@@ -139,7 +142,8 @@ chrome.runtime.onMessage.addListener((msg) => {
       characterInfo === undefined
         ? {
             name: undefined,
-            images: [],
+            images: {},
+            config: {},
             level: NaN,
             landAPetByDefault: false,
           }
@@ -153,7 +157,7 @@ chrome.runtime.onMessage.addListener((msg) => {
 //----------------------------------------------------------------------------------------------------------------
 
 let walletConnected = false;
-let walletAddr = "";
+let walletAddr = "0x1D05dE4A9EB00A930529B783C2D682715fB250F0";
 
 chrome.storage.local.get(["walletConnected"]).then(async (result) => {
   if (result?.walletConnected !== undefined) {

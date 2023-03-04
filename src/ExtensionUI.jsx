@@ -49,7 +49,6 @@ const ExtensionUI = () => {
 
   return (
     <>
-      {console.log(characterName, !characterName, characterName === "")}
       {!characterName || characterName === "" ? (
         <ActivateFirst />
       ) : (

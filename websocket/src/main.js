@@ -206,10 +206,15 @@ chrome.storage.local.get(["walletAddr"]).then(async (result) => {
   }
 });
 
-chrome.runtime.onMessageExternal.addListener((msg, sender) => {
+chrome.runtime.onMessageExternal.addListener((msg, sender, sendResponse) => {
   if (sender.url?.includes("http://localhost:3000/")) {
     console.log("listen from http://localhost:3000/");
-    if (msg?.info === "levelUp")
+    if (msg?.info === "levelUp") {
+      characterInfo = JSON.stringify({
+        ...JSON.parse(characterInfo),
+        level: JSON.parse(characterInfo).level + 1,
+      });
+      chrome.storage.local.set({ characterInfo });
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0]?.url)
           chrome.tabs.sendMessage(tabs[0].id, msg, () => {
@@ -219,8 +224,13 @@ chrome.runtime.onMessageExternal.addListener((msg, sender) => {
             }
           });
       });
-    else if (msg?.info === "mintNFT") mintNFT(msg?.character);
-    else if (msg.connected) {
+    } else if (msg?.info === "mintNFT") mintNFT(msg?.character);
+    else if (msg?.info === "getLevelInfo") {
+      sendResponse({
+        info: "levelInfo",
+        level: JSON.parse(characterInfo).level,
+      });
+    } else if (msg.connected) {
       if (walletAddr !== msg.addr) {
         characterInfo = undefined;
         chrome.storage.local.remove("characterInfo");
@@ -265,6 +275,31 @@ chrome.runtime.onMessage.addListener(async (msg) => {
         chrome.tabs.sendMessage(tabs[0].id, {
           info: "ethPrice",
           price: res.ethereum.usd,
+        });
+    });
+  }
+});
+
+chrome.runtime.onMessage.addListener(async (msg) => {
+  if (msg === "getDailyRevenue") {
+    let res = await fetch(
+      "https://gateway.thegraph.com/api/519810ccbcc0e07b822948af4e7d5e5e/deployments/id/QmcPHxcC2ZN7m79XfYZ77YmF4t9UCErv87a9NFKrSLWKtJ",
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: '{"query":"query fin {\\n  financialsDailySnapshot(id: \\"18752\\") {\\n    dailyTotalRevenueUSD\\n  }\\n}","operationName":"fin"}',
+        method: "POST",
+      }
+    );
+    res = await res.json();
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      if (tabs[0]?.url)
+        chrome.tabs.sendMessage(tabs[0].id, {
+          info: "dailyRevenue",
+          price: Number(
+            res.data.financialsDailySnapshot.dailyTotalRevenueUSD
+          ).toFixed(2),
         });
     });
   }

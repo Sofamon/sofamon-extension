@@ -34,6 +34,9 @@ const HTML = `
   <li class="menu-item">
     <span>check price</span>
   </li>
+  <li class="menu-item">
+    <span>check daily revenue</span>
+  </li>
   <li style="padding: 0; margin: 0.35em 0; border-bottom: 1px solid #e6e6e6"></li>
   <li class="menu-item">
     <span>birth of nft</span>
@@ -72,7 +75,7 @@ const HTML = `
     "></div>
 `;
 
-const MENU_HEIGHT = 388;
+const MENU_HEIGHT = 415;
 
 //---------------------------------------------------------------------------------------------------------------------------
 
@@ -112,6 +115,7 @@ class Character {
       this.selectedDiv = null;
       this.task = null;
       this.ethPrice = 1562.38;
+      this.dailyRevenue = 48072.22;
       this.updateETHPrice();
       this.draw();
       this.detectScroll();
@@ -168,28 +172,31 @@ class Character {
     const checkPrice = this.menu.children[5];
     checkPrice.onclick = () => this.checkPrice();
 
-    const birthOfNFT = this.menu.children[7];
+    const checkDailyRevenue = this.menu.children[6];
+    checkDailyRevenue.onclick = () => this.checkDailyRevenue();
+
+    const birthOfNFT = this.menu.children[8];
     birthOfNFT.onclick = () => this.birthOfNFT();
 
-    const sendTransaction = this.menu.children[8];
+    const sendTransaction = this.menu.children[9];
     sendTransaction.onclick = () => this.sendTransaction();
 
-    const buyNFT = this.menu.children[9];
+    const buyNFT = this.menu.children[10];
     buyNFT.onclick = () => this.buyNFT();
 
-    const getAirdrop = this.menu.children[10];
+    const getAirdrop = this.menu.children[11];
     getAirdrop.onclick = () => this.getAirdrop();
 
-    const levelUp = this.menu.children[11];
+    const levelUp = this.menu.children[12];
     levelUp.onclick = () => this.levelUp();
 
-    const stealObject = this.menu.children[13];
+    const stealObject = this.menu.children[14];
     stealObject.onclick = () => this.stealObject();
 
-    const jumpOnto = this.menu.children[14];
+    const jumpOnto = this.menu.children[15];
     jumpOnto.onclick = () => this.jumpOnto();
 
-    const fall = this.menu.children[15];
+    const fall = this.menu.children[16];
     fall.onclick = () => this.drop();
   }
 
@@ -304,29 +311,30 @@ class Character {
           this.menu.children[3].classList.remove("menu-disabled");
           this.menu.children[4].classList.remove("menu-disabled");
           this.menu.children[5].classList.remove("menu-disabled");
-          this.menu.children[7].classList.remove("menu-disabled");
+          this.menu.children[6].classList.remove("menu-disabled");
           this.menu.children[8].classList.remove("menu-disabled");
           this.menu.children[9].classList.remove("menu-disabled");
           this.menu.children[10].classList.remove("menu-disabled");
           this.menu.children[11].classList.remove("menu-disabled");
-          this.menu.children[13].classList.remove("menu-disabled");
+          this.menu.children[12].classList.remove("menu-disabled");
           this.menu.children[14].classList.remove("menu-disabled");
+          this.menu.children[15].classList.remove("menu-disabled");
         } else {
           this.menu.children[2].classList.add("menu-disabled");
           this.menu.children[3].classList.add("menu-disabled");
           this.menu.children[4].classList.add("menu-disabled");
           this.menu.children[5].classList.add("menu-disabled");
-          this.menu.children[7].classList.add("menu-disabled");
+          this.menu.children[6].classList.add("menu-disabled");
           this.menu.children[8].classList.add("menu-disabled");
           this.menu.children[9].classList.add("menu-disabled");
           this.menu.children[10].classList.add("menu-disabled");
-          this.menu.children[11].classList.add("menu-disabled");
-          this.menu.children[13].classList.add("menu-disabled");
+          this.menu.children[12].classList.add("menu-disabled");
           this.menu.children[14].classList.add("menu-disabled");
+          this.menu.children[15].classList.add("menu-disabled");
         }
         if (this.y !== 100)
-          this.menu.children[15].classList.remove("menu-disabled");
-        else this.menu.children[15].classList.add("menu-disabled");
+          this.menu.children[16].classList.remove("menu-disabled");
+        else this.menu.children[16].classList.add("menu-disabled");
         this.menu.style.display = "block";
       } else this.menu.style.display = "none";
       if (selectedDiv) this.jumpOnto();
@@ -408,6 +416,7 @@ class Character {
     }px`;
     this.character.src = this.images[this.position];
     this.handleCheckPrice();
+    this.handleCheckDailyRevenue();
   }
 
   // drop action
@@ -614,7 +623,7 @@ class Character {
 
   // check price action
   async checkPrice() {
-    const taskId = makeId();
+    const taskId = "checkPrice";
     this.task = taskId;
     if (this.task !== taskId) return;
     chrome.runtime.sendMessage("getETHPrice");
@@ -636,15 +645,15 @@ class Character {
 
   // handle check price action
   async handleCheckPrice() {
+    const checkPriceSpan =
+      this.screen.getElementsByClassName("check-price-span");
+    if (checkPriceSpan.length > 0) checkPriceSpan[0].remove();
     if (
       this.config.positions.checkPrice.id +
-        this.config.positions.checkPrice.final !==
-      this.position
+        this.config.positions.checkPrice.final ===
+        this.position &&
+      this.task === "checkPrice"
     ) {
-      const checkPriceSpan =
-        this.screen.getElementsByClassName("check-price-span");
-      if (checkPriceSpan.length > 0) checkPriceSpan[0].remove();
-    } else {
       const checkPriceSpan =
         this.screen.getElementsByClassName("check-price-span");
       if (checkPriceSpan.length > 0) return;
@@ -665,6 +674,63 @@ class Character {
       span.style.fontWeight = 600;
       span.style.fontFamily = "sans-serif";
       span.innerHTML = "$" + this.ethPrice;
+      this.screen.appendChild(span);
+    }
+  }
+
+  // check daily revenue action
+  async checkDailyRevenue() {
+    const taskId = "checkDailyRevenue";
+    this.task = taskId;
+    if (this.task !== taskId) return;
+    chrome.runtime.sendMessage("getDailyRevenue");
+    this.character.style.transform = "unset";
+    for (
+      let frame = 1;
+      frame <= this.config.positions.checkPrice.frames && this.task === taskId;
+      frame++
+    ) {
+      const frameId =
+        frame.toString().length === 1
+          ? `0${frame.toString()}`
+          : frame.toString();
+      this.position = this.config.positions.checkPrice.id + frameId;
+      this.draw();
+      await sleep(this.config.positions.checkPrice.delay);
+    }
+  }
+
+  // handle check daily revenue action
+  async handleCheckDailyRevenue() {
+    const checkDailyRevenueSpan =
+      this.screen.getElementsByClassName("check-revenue-span");
+    if (checkDailyRevenueSpan.length > 0) checkDailyRevenueSpan[0].remove();
+    if (
+      this.config.positions.checkPrice.id +
+        this.config.positions.checkPrice.final ===
+        this.position &&
+      this.task === "checkDailyRevenue"
+    ) {
+      const checkDailyRevenueSpan =
+        this.screen.getElementsByClassName("check-revenue-span");
+      if (checkDailyRevenueSpan.length > 0) return;
+      const span = document.createElement("span");
+      span.classList.add("check-revenue-span");
+      span.style.pointerEvents = "none";
+      span.style.position = "absolute";
+      span.style.top = `${
+        (this.y / 100) * document.documentElement.clientHeight -
+        this.config.dimension / 2.7
+      }px`;
+      span.style.left = `${
+        (this.x / 100) * document.documentElement.clientWidth +
+        this.config.dimension / 4.6
+      }px`;
+      span.style.zIndex = 2147483646;
+      span.style.fontSize = "20px";
+      span.style.fontWeight = 600;
+      span.style.fontFamily = "sans-serif";
+      span.innerHTML = "$" + this.dailyRevenue;
       this.screen.appendChild(span);
     }
   }
@@ -1152,11 +1218,13 @@ class Character {
     });
   }
 
-  // update ETH price
+  // update ETH price and daily revenue
   updateETHPrice() {
     chrome.runtime.onMessage.addListener((msg) => {
       if (msg?.info === "ethPrice") {
         this.ethPrice = msg?.price;
+      } else if (msg?.info === "dailyRevenue") {
+        this.dailyRevenue = msg?.price;
       }
     });
   }

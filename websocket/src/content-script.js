@@ -129,7 +129,7 @@ class Character {
   //  initializes everything (creates root div where the character will move)
   init() {
     const div = document.createElement("div");
-    div.id = `shimiji-extension-${this.id}`;
+    div.id = `sofamon-extension-${this.id}`;
     div.innerHTML = HTML;
     document.body.appendChild(div);
     this.screen = div;

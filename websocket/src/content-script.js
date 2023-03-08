@@ -1315,7 +1315,7 @@ chrome.runtime.sendMessage("getCharacterInfo");
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg === "newChar") {
     if (getNumberOfCharacters() >= 3)
-      alert("Clone failed! Maximum of 3 shimejis per character.");
+      alert("Clone failed! Maximum of 3 sofamon per character.");
     else main();
   } else if (msg === "dismissAll") dismissAll();
   else if (msg?.info === "mintNFT") mintNFT(msg);

@@ -72,7 +72,7 @@ const ExtensionUI = () => {
             <img
               src={characterImage}
               draggable={false}
-              alt="Shimeji Browser Extension"
+              alt="Sofamon Browser Extension"
               style={{ width: 140, marginRight: 4, marginBottom: 4 }}
             />
             <br />

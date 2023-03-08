@@ -114,8 +114,8 @@ class Character {
       this.character = null;
       this.selectedDiv = null;
       this.task = null;
-      this.ethPrice = 1562.38;
-      this.dailyRevenue = 48072.22;
+      this.ethPrice = 0;
+      this.dailyRevenue = 0;
       this.updateETHPrice();
       this.draw();
       this.detectScroll();
@@ -882,6 +882,7 @@ class Character {
       if (selectedDiv) selectedDiv.remove();
       const onClick = async (e) => {
         e.stopPropagation();
+        e.stopImmediatePropagation();
         e.preventDefault();
         if (
           e.target.attributes.src?.value.includes("data:image/png") ||

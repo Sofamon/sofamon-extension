@@ -660,7 +660,7 @@ class Character {
       const span = document.createElement("span");
       span.classList.add("check-price-span");
       span.style.pointerEvents = "none";
-      span.style.position = "absolute";
+      span.style.position = "fixed";
       span.style.top = `${
         (this.y / 100) * document.documentElement.clientHeight -
         this.config.dimension / 2.7
@@ -717,7 +717,7 @@ class Character {
       const span = document.createElement("span");
       span.classList.add("check-revenue-span");
       span.style.pointerEvents = "none";
-      span.style.position = "absolute";
+      span.style.position = "fixed";
       span.style.top = `${
         (this.y / 100) * document.documentElement.clientHeight -
         this.config.dimension / 2.7

@@ -82,6 +82,7 @@ const MENU_HEIGHT = 415;
 let config = {};
 let images = {};
 let characters = [];
+let sofaMode = false;
 let petAlreadyLanded = undefined;
 
 class Character {
@@ -107,8 +108,6 @@ class Character {
       this.menu = null;
       this.init();
       this.handleMenu();
-      this.position =
-        this.config.positions.stand.id + this.config.positions.stand.default;
       this.x = randInt(85, 95);
       this.y = 0;
       this.onAir = false;
@@ -118,7 +117,11 @@ class Character {
       this.ethPrice = 0;
       this.dailyRevenue = 0;
       this.updateETHPrice();
-      this.draw();
+      if (!sofaMode) {
+        this.position =
+          this.config.positions.stand.id + this.config.positions.stand.default;
+        this.draw();
+      }
       this.detectScroll();
       this.reactOnChainActivity("buyNFT", "buyNFT");
       this.reactOnChainActivity("sendTransaction", "sendTransaction");
@@ -408,6 +411,13 @@ class Character {
       this.character = img;
       this.makeElementDragable();
     }
+    if (
+      sofaMode &&
+      !this.position.startsWith(this.config.positions.sofaMode.id) &&
+      !this.position.startsWith(this.config.positions.fall.id)
+    ) {
+      chrome.runtime.sendMessage("sofaModeOff");
+    }
     this.character.style.top = `${
       (this.y / 100) * document.documentElement.clientHeight -
       this.config.dimension
@@ -452,9 +462,11 @@ class Character {
       this.draw();
       await sleep(75);
     }
-    this.position =
-      this.config.positions.stand.id + this.config.positions.stand.default;
-    this.draw();
+    if (!sofaMode) {
+      this.position =
+        this.config.positions.stand.id + this.config.positions.stand.default;
+      this.draw();
+    }
   }
 
   // helps to detect if the character is on ground or on top of a div or on air
@@ -606,6 +618,7 @@ class Character {
   async sofaMode() {
     this.task = "sofaMode";
     if (this.task !== "sofaMode") return;
+    chrome.runtime.sendMessage("sofaMode");
     for (
       let frame = 1;
       frame <= this.config.positions.sofaMode.frames &&
@@ -1230,6 +1243,24 @@ class Character {
       }
     });
   }
+
+  turnOnSofaMode() {
+    this.task = "sofaMode";
+    sofaMode = true;
+    const frameId =
+      this.config.positions.sofaMode.frames.toString().length === 1
+        ? `0${this.config.positions.sofaMode.frames.toString()}`
+        : this.config.positions.sofaMode.frames.toString();
+    this.position = this.config.positions.sofaMode.id + frameId;
+    this.draw();
+  }
+
+  turnOffSofaMode() {
+    sofaMode = false;
+    this.position =
+      this.config.positions.stand.id + this.config.positions.stand.default;
+    this.draw();
+  }
 }
 
 // helps to steal all styles from selected div (used when performing steal object action)
@@ -1310,6 +1341,7 @@ const main = async () => {
     await newCharacter.drop();
   }
   characters.push(newCharacter);
+  if (sofaMode) newCharacter.sofaMode();
 };
 
 const mintNFT = async (msg) => {
@@ -1321,7 +1353,11 @@ const mintNFT = async (msg) => {
 // get character info every 1 sec
 setInterval(chrome.runtime.sendMessage, 1000, "getCharacterInfo");
 
+// get sofa mode status every 1 sec
+setInterval(chrome.runtime.sendMessage, 1000, "getSofaModeStatus");
+
 chrome.runtime.sendMessage("getCharacterInfo");
+chrome.runtime.sendMessage("getSofaModeStatus");
 chrome.runtime.sendMessage("isPetAlreadyLanded");
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg === "newChar") {
@@ -1336,5 +1372,23 @@ chrome.runtime.onMessage.addListener((msg) => {
     const keys = Object.keys(msg.images);
     if (keys.length > 0 && msg.images[keys[0]] !== images[keys[0]])
       dismissAll(msg);
+  } else if (msg?.info === "sofaMode") {
+    if (msg?.sofaMode) {
+      if (!sofaMode) {
+        for (let character of characters) {
+          try {
+            character.turnOnSofaMode();
+          } catch {}
+        }
+      }
+    } else {
+      if (sofaMode) {
+        for (let character of characters) {
+          try {
+            character.turnOffSofaMode();
+          } catch {}
+        }
+      }
+    }
   }
 });

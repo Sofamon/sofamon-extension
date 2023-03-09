@@ -60,6 +60,7 @@ const makeWSConnection = (addr) => {
 
 let characterInfo;
 let landAPetByDefault = true;
+let sofaMode = false;
 let petAlreadyLanded = false;
 
 const getBase64FromUrl = async (url) => {
@@ -137,6 +138,7 @@ chrome.runtime.onMessageExternal.addListener(async (msg, sender) => {
       config,
       level: 0,
     });
+    sofaMode = false;
     chrome.storage.local.set({ characterInfo });
   }
 });
@@ -256,6 +258,19 @@ chrome.runtime.onMessageExternal.addListener((msg, sender, sendResponse) => {
       chrome.storage.local.set({ walletConnected });
     }
   }
+});
+
+chrome.runtime.onMessage.addListener(async (msg) => {
+  if (msg === "getSofaModeStatus") {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      if (tabs[0]?.url)
+        chrome.tabs.sendMessage(tabs[0].id, {
+          info: "sofaMode",
+          sofaMode,
+        });
+    });
+  } else if (msg === "sofaMode") sofaMode = true;
+  else if (msg === "sofaModeOff") sofaMode = false;
 });
 
 chrome.runtime.onMessage.addListener((msg) => {

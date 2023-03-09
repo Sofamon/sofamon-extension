@@ -93,7 +93,13 @@ const cacheAllImages = async (id = "bunny") => {
         (base64Images) => {
           imageData[image] = base64Images;
           if (Object.keys(imageData).length === images.length)
-            resolve({ images: imageData, config: res });
+            resolve({
+              name: res?.name,
+              characterId: id,
+              images: imageData,
+              config: res,
+              level: 0,
+            });
         }
       );
     }
@@ -102,6 +108,8 @@ const cacheAllImages = async (id = "bunny") => {
 
 const mintNFT = async (id) => {
   const res = await cacheAllImages(id);
+  characterInfo = JSON.stringify(res);
+  chrome.storage.local.set({ characterInfo });
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs[0]?.url)
       chrome.tabs.sendMessage(tabs[0].id, { info: "mintNFT", ...res }, () => {

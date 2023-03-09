@@ -87,47 +87,32 @@ let petAlreadyLanded = undefined;
 
 class Character {
   constructor(id) {
-    if (id?.info === "mintNFT") {
-      this.config = id.config;
-      this.id = id.info;
-      this.images = id.images;
-      this.screen = null;
-      this.menu = null;
-      this.init();
+    this.config = config;
+    this.id = id;
+    this.images = images;
+    this.screen = null;
+    this.menu = null;
+    this.init();
+    this.handleMenu();
+    this.x = randInt(82, 92);
+    this.y = 0;
+    this.onAir = false;
+    this.character = null;
+    this.selectedDiv = null;
+    this.task = null;
+    this.ethPrice = 0;
+    this.dailyRevenue = 0;
+    this.updateETHPrice();
+    if (!sofaMode) {
       this.position =
         this.config.positions.stand.id + this.config.positions.stand.default;
-      this.x = randInt(15, 85);
-      this.y = 100;
-      this.character = null;
       this.draw();
-    } else {
-      this.config = config;
-      this.id = id;
-      this.images = images;
-      this.screen = null;
-      this.menu = null;
-      this.init();
-      this.handleMenu();
-      this.x = randInt(85, 95);
-      this.y = 0;
-      this.onAir = false;
-      this.character = null;
-      this.selectedDiv = null;
-      this.task = null;
-      this.ethPrice = 0;
-      this.dailyRevenue = 0;
-      this.updateETHPrice();
-      if (!sofaMode) {
-        this.position =
-          this.config.positions.stand.id + this.config.positions.stand.default;
-        this.draw();
-      }
-      this.detectScroll();
-      this.reactOnChainActivity("buyNFT", "buyNFT");
-      this.reactOnChainActivity("sendTransaction", "sendTransaction");
-      this.reactOnChainActivity("getAirdrop", "getAirdrop");
-      this.reactOnChainActivity("levelUp", "levelUp");
     }
+    this.detectScroll();
+    this.reactOnChainActivity("buyNFT", "buyNFT");
+    this.reactOnChainActivity("sendTransaction", "sendTransaction");
+    this.reactOnChainActivity("getAirdrop", "getAirdrop");
+    this.reactOnChainActivity("levelUp", "levelUp");
   }
 
   //  initializes everything (creates root div where the character will move)
@@ -1345,9 +1330,20 @@ const main = async () => {
 };
 
 const mintNFT = async (msg) => {
-  const character = new Character(msg);
-  await character.birthOfNFT();
-  character.character.parentElement.parentElement.remove();
+  for (let character of characters) {
+    try {
+      character.dismiss();
+    } catch {}
+  }
+  images = msg.images;
+  config = msg.config;
+  if (msg.landAPetByDefault) main();
+  const id = makeId();
+  const newCharacter = new Character(id);
+  newCharacter.y = 100;
+  characters.push(newCharacter);
+  if (sofaMode) newCharacter.sofaMode();
+  else newCharacter.birthOfNFT();
 };
 
 // get character info every 1 sec

@@ -82,6 +82,7 @@ const MENU_HEIGHT = 415;
 let config = {};
 let images = {};
 let characters = [];
+let petAlreadyLanded = undefined;
 
 class Character {
   constructor(id) {
@@ -1299,7 +1300,15 @@ const getNumberOfCharacters = () => {
 const main = async () => {
   const id = makeId();
   const newCharacter = new Character(id);
-  await newCharacter.drop();
+  if (petAlreadyLanded) {
+    newCharacter.y = 100;
+    newCharacter.draw();
+    petAlreadyLanded = false;
+  } else {
+    newCharacter.y = 0;
+    chrome.runtime.sendMessage("petLanded");
+    await newCharacter.drop();
+  }
   characters.push(newCharacter);
 };
 
@@ -1313,14 +1322,17 @@ const mintNFT = async (msg) => {
 setInterval(chrome.runtime.sendMessage, 1000, "getCharacterInfo");
 
 chrome.runtime.sendMessage("getCharacterInfo");
+chrome.runtime.sendMessage("isPetAlreadyLanded");
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg === "newChar") {
     if (getNumberOfCharacters() >= 3)
       alert("Clone failed! Maximum of 3 sofamon per character.");
     else main();
   } else if (msg === "dismissAll") dismissAll();
-  else if (msg?.info === "mintNFT") mintNFT(msg);
-  else if (msg?.images) {
+  else if (msg?.info === "petAlreadyLanded") {
+    petAlreadyLanded = msg?.petAlreadyLanded;
+  } else if (msg?.info === "mintNFT") mintNFT(msg);
+  else if (msg?.images && typeof petAlreadyLanded !== "undefined") {
     const keys = Object.keys(msg.images);
     if (keys.length > 0 && msg.images[keys[0]] !== images[keys[0]])
       dismissAll(msg);

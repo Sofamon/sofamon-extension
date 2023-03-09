@@ -60,6 +60,7 @@ const makeWSConnection = (addr) => {
 
 let characterInfo;
 let landAPetByDefault = true;
+let petAlreadyLanded = false;
 
 const getBase64FromUrl = async (url) => {
   const data = await fetch(url);
@@ -225,7 +226,7 @@ chrome.runtime.onMessageExternal.addListener((msg, sender, sendResponse) => {
           });
       });
     } else if (msg?.info === "mintNFT") mintNFT(msg?.character);
-    else if (msg?.info === "getLevelInfo") {
+    else if (msg?.info === "getLevelInfo" && characterInfo) {
       sendResponse({
         info: "levelInfo",
         level: JSON.parse(characterInfo).level,
@@ -303,4 +304,16 @@ chrome.runtime.onMessage.addListener(async (msg) => {
         });
     });
   }
+});
+
+chrome.runtime.onMessage.addListener(async (msg) => {
+  if (msg === "isPetAlreadyLanded") {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      if (tabs[0]?.url)
+        chrome.tabs.sendMessage(tabs[0].id, {
+          info: "petAlreadyLanded",
+          petAlreadyLanded,
+        });
+    });
+  } else if (msg === "petLanded") petAlreadyLanded = true;
 });

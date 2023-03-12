@@ -49,6 +49,7 @@ const makeWSConnection = (addr) => {
     "buyNFT"
   );
   triggerActionOnChainActivity(addr, "", "sendTransaction");
+  triggerActionOnChainActivity("", addr, "sendTransaction");
   triggerActionOnChainActivity(
     "0x9d97fbc55fc28022e1df7617c9fd447f30b51369",
     addr,
